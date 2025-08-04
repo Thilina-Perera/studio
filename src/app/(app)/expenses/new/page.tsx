@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -33,6 +34,7 @@ import { useUser } from '@/hooks/use-user';
 import { mockClubs } from '@/lib/mock-data';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const formSchema = z.object({
   clubId: z.string().min(1, 'Please select a club.'),
@@ -45,25 +47,59 @@ const formSchema = z.object({
   receipt: z.any().optional(),
 });
 
+function NewExpensePageSkeleton() {
+    return (
+        <Card className="max-w-2xl mx-auto">
+            <CardHeader>
+                <Skeleton className="h-8 w-1/2" />
+                <Skeleton className="h-4 w-3/4" />
+            </CardHeader>
+            <CardContent className="space-y-8">
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-20 w-full" />
+                </div>
+                 <div className="space-y-2">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+                 <div className="space-y-2">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+                <Skeleton className="h-10 w-32" />
+            </CardContent>
+        </Card>
+    )
+}
+
 export default function NewExpensePage() {
   const { user, role } = useUser();
   const { toast } = useToast();
   const router = useRouter();
   
-  // Representatives can submit for their clubs, students can submit for any club.
-  const availableClubs = role === 'representative' 
-    ? mockClubs.filter((club) => club.representativeId === user?.id)
-    : mockClubs;
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       clubId: '',
       description: '',
-      amount: '' as any, // Initialize as empty string to be a controlled component
+      amount: '' as any,
       receipt: undefined,
     },
   });
+
+  if (!user || !role) {
+    return <NewExpensePageSkeleton />;
+  }
+    
+  // Representatives can submit for their clubs, students can submit for any club.
+  const availableClubs = role === 'representative' 
+    ? mockClubs.filter((club) => club.representativeId === user?.id)
+    : mockClubs;
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
