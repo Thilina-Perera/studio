@@ -8,15 +8,13 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useUser } from '@/hooks/use-user';
-import { useFirebase } from '@/hooks/use-firebase';
 import { DollarSign, FileText, Users } from 'lucide-react';
 import { ExpenseTable } from './expense-table';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 
 export function RepresentativeDashboard() {
-  const { user } = useUser();
-  const { clubs, expenses } = useFirebase();
+  const { user, clubs, expenses } = useUser();
   
   // Data is guaranteed to be loaded by AppLayout, so we can safely use it here.
   const userClubs = clubs.filter(

@@ -33,8 +33,6 @@ import {
 import { useUser } from '@/hooks/use-user';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useFirebase } from '@/hooks/use-firebase';
 import type { Expense } from '@/lib/types';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -50,41 +48,11 @@ const formSchema = z.object({
   receipt: z.any().optional(),
 });
 
-function NewExpensePageSkeleton() {
-    return (
-        <Card className="max-w-2xl mx-auto">
-            <CardHeader>
-                <Skeleton className="h-8 w-1/2" />
-                <Skeleton className="h-4 w-3/4" />
-            </CardHeader>
-            <CardContent className="space-y-8">
-                <div className="space-y-2">
-                    <Skeleton className="h-4 w-1/4" />
-                    <Skeleton className="h-10 w-full" />
-                </div>
-                <div className="space-y-2">
-                    <Skeleton className="h-4 w-1/4" />
-                    <Skeleton className="h-20 w-full" />
-                </div>
-                 <div className="space-y-2">
-                    <Skeleton className="h-4 w-1/4" />
-                    <Skeleton className="h-10 w-full" />
-                </div>
-                 <div className="space-y-2">
-                    <Skeleton className="h-4 w-1/4" />
-                    <Skeleton className="h-10 w-full" />
-                </div>
-                <Button disabled>Submit Expense</Button>
-            </CardContent>
-        </Card>
-    )
-}
 
 export default function NewExpensePage() {
-  const { user, role, loading: userLoading } = useUser();
+  const { user, role, clubs } = useUser();
   const { toast } = useToast();
   const router = useRouter();
-  const { clubs, loading: firebaseLoading } = useFirebase();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -95,10 +63,6 @@ export default function NewExpensePage() {
       receipt: undefined,
     },
   });
-
-  if (userLoading || firebaseLoading || !user || !role) {
-    return <NewExpensePageSkeleton />;
-  }
     
   // Representatives can submit for their clubs, students can submit for any club.
   const availableClubs = role === 'representative' 
@@ -106,15 +70,15 @@ export default function NewExpensePage() {
     : clubs;
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!user) {
+        toast({
+            variant: "destructive",
+            title: "Not Authenticated",
+            description: "You must be logged in to submit an expense.",
+        })
+        return;
+    }
     try {
-        if (!user) {
-            toast({
-                variant: "destructive",
-                title: "Not Authenticated",
-                description: "You must be logged in to submit an expense.",
-            })
-            return;
-        }
         const newExpense: Omit<Expense, 'id'> = {
             clubId: values.clubId,
             description: values.description,

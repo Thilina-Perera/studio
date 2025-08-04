@@ -17,7 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
 import type { Expense } from '@/lib/types';
-import { useFirebase } from '@/hooks/use-firebase';
+import { useUser } from '@/hooks/use-user';
 import { StatusBadge } from './status-badge';
 import { format } from 'date-fns';
 
@@ -26,7 +26,7 @@ interface ExpenseTableProps {
 }
 
 export function ExpenseTable({ expenses }: ExpenseTableProps) {
-  const { clubs } from useFirebase();
+  const { clubs } = useUser();
   const getClubName = (clubId: string) => {
     return clubs.find((c) => c.id === clubId)?.name || 'Unknown Club';
   };

@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useFirebase } from '@/hooks/use-firebase';
+import { useUser } from '@/hooks/use-user';
 import { ExpenseTable } from './expense-table';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -19,7 +19,7 @@ import type { Expense } from '@/lib/types';
 import { Skeleton } from '../ui/skeleton';
 
 export function AdminDashboard({ children }: { children: React.ReactNode }) {
-  const { expenses: allExpenses, clubs, loading } = useFirebase();
+  const { expenses: allExpenses, clubs, loading } = useUser();
   const [descriptionFilter, setDescriptionFilter] = useState('');
   const [clubFilter, setClubFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState<DateRange | undefined>();

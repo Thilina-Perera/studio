@@ -10,12 +10,10 @@ import {
 } from '@/components/ui/card';
 import { ExpenseTable } from '@/components/dashboard/expense-table';
 import { useUser } from '@/hooks/use-user';
-import { useFirebase } from '@/hooks/use-firebase';
 import Link from 'next/link';
 
 export default function ExpensesPage() {
-  const { user, role } = useUser();
-  const { clubs, expenses } = useFirebase();
+  const { user, role, clubs, expenses } = useUser();
 
   // Data is guaranteed to be loaded by AppLayout
   const userExpenses = expenses.filter((expense) => {

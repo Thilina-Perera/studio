@@ -8,15 +8,13 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useUser } from '@/hooks/use-user';
-import { useFirebase } from '@/hooks/use-firebase';
 import { DollarSign, FileText } from 'lucide-react';
 import { ExpenseTable } from './expense-table';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 
 export function StudentDashboard() {
-  const { user } = useUser();
-  const { expenses } = useFirebase();
+  const { user, expenses } = useUser();
 
   // Data is guaranteed to be loaded by AppLayout, so we can safely use it here.
   const userExpenses = expenses.filter(

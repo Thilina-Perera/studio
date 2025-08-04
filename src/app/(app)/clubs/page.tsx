@@ -9,13 +9,11 @@ import {
   CardDescription
 } from '@/components/ui/card';
 import { useUser } from '@/hooks/use-user';
-import { useFirebase } from '@/hooks/use-firebase';
 import Link from 'next/link';
 import { PlusCircle } from 'lucide-react';
 
 export default function ClubsPage() {
-  const { user } = useUser();
-  const { clubs } = useFirebase();
+  const { user, clubs } = useUser();
 
   // Data is guaranteed to be loaded by AppLayout
   const userClubs = clubs.filter(

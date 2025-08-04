@@ -59,7 +59,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   
   // Show skeleton while loading user auth state OR if there is no user yet
   // This is the gatekeeper for all authenticated routes
-  if (loading || !user) {
+  if (loading) {
     return <AppLayoutSkeleton />;
   }
   

@@ -2,10 +2,10 @@
 'use client';
 
 import { useState, useEffect, useCallback, createContext, useContext, ReactNode } from 'react';
-import type { User as AppUser, UserRole } from '@/lib/types';
+import type { User as AppUser, UserRole, Club, Expense } from '@/lib/types';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, User as FirebaseAuthUser } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 
 const roles: UserRole[] = ['admin', 'representative', 'student'];
@@ -14,6 +14,8 @@ interface UserContextType {
   user: AppUser | null;
   firebaseUser: FirebaseAuthUser | null;
   role: UserRole | null;
+  clubs: Club[];
+  expenses: Expense[];
   loading: boolean;
   logout: () => void;
   toggleRole: () => void;
@@ -26,6 +28,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const [firebaseUser, setFirebaseUser] = useState<FirebaseAuthUser | null>(null);
     const [user, setUser] = useState<AppUser | null>(null);
     const [role, setRole] = useState<UserRole | null>(null);
+    const [clubs, setClubs] = useState<Club[]>([]);
+    const [expenses, setExpenses] = useState<Expense[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
@@ -34,21 +38,46 @@ export function UserProvider({ children }: { children: ReactNode }) {
             setLoading(true);
             if (authUserData) {
                 setFirebaseUser(authUserData);
-                const userDocRef = doc(db, "users", authUserData.uid);
-                const userDoc = await getDoc(userDocRef);
                 
-                if (userDoc.exists()) {
-                    const userData = userDoc.data() as AppUser;
-                    setUser(userData);
-                    setRole(userData.role);
-                } else {
+                // Fetch user data, clubs, and expenses
+                try {
+                    const userDocRef = doc(db, "users", authUserData.uid);
+                    const [userDoc, clubsSnapshot, expensesSnapshot] = await Promise.all([
+                        getDoc(userDocRef),
+                        getDocs(collection(db, "clubs")),
+                        getDocs(collection(db, "expenses"))
+                    ]);
+
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data() as AppUser;
+                        setUser(userData);
+                        setRole(userData.role);
+                    } else {
+                         setUser(null);
+                         setRole(null);
+                    }
+                    
+                    const clubsData = clubsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Club[];
+                    setClubs(clubsData);
+
+                    const expensesData = expensesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Expense[];
+                    setExpenses(expensesData);
+
+                } catch (error) {
+                    console.error("Error fetching initial data:", error);
+                    // Reset state on error
                     setUser(null);
                     setRole(null);
+                    setClubs([]);
+                    setExpenses([]);
                 }
             } else {
+                // No user logged in
                 setFirebaseUser(null);
                 setUser(null);
                 setRole(null);
+                setClubs([]);
+                setExpenses([]);
             }
             setLoading(false);
         });
@@ -62,17 +91,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
         setUser(null);
         setFirebaseUser(null);
         setRole(null);
+        setClubs([]);
+        setExpenses([]);
         router.push('/');
     };
     
-    // The role toggling is for demo purposes. In a real app, roles would be managed by an admin.
     const toggleRole = useCallback(async () => {
         if (!user) return;
         const currentIndex = roles.indexOf(user.role);
         const nextIndex = (currentIndex + 1) % roles.length;
         const newRole = roles[nextIndex];
-        // In a real app, you would have a secure way to update this, likely a cloud function.
-        // For this demo, we'll just update the local state.
         setUser({...user, role: newRole});
         setRole(newRole);
     }, [user]);
@@ -84,7 +112,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         return roles[nextIndex];
     }
     
-    const value = { user, firebaseUser, role, loading, logout, toggleRole, getNextRole };
+    const value = { user, firebaseUser, role, loading, clubs, expenses, logout, toggleRole, getNextRole };
 
     return (
         <UserContext.Provider value={value}>
