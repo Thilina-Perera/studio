@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { User, UserRole } from '@/lib/types';
-import { useMockData } from './use-mock-data';
+import { useMockData } from './use-mock-data.tsx';
 
 const roles: UserRole[] = ['admin', 'representative', 'student'];
 

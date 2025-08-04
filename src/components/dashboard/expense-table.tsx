@@ -16,7 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
 import type { Expense } from '@/lib/types';
-import { useMockData } from '@/hooks/use-mock-data';
+import { useMockData } from '@/hooks/use-mock-data.tsx';
 import { StatusBadge } from './status-badge';
 import { format } from 'date-fns';
 

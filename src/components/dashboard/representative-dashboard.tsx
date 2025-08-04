@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useUser } from '@/hooks/use-user';
-import { useMockData } from '@/hooks/use-mock-data';
+import { useMockData } from '@/hooks/use-mock-data.tsx';
 import { DollarSign, FileText, Users } from 'lucide-react';
 import { ExpenseTable } from './expense-table';
 import Link from 'next/link';
@@ -80,7 +80,7 @@ export function RepresentativeDashboard() {
             <Button asChild>
                 <Link href="/expenses/new">New Expense</Link>
             </Button>
-        </CardHeader>
+        </Header>
         <CardContent>
           <ExpenseTable expenses={userExpenses.slice(0, 5)} />
         </CardContent>

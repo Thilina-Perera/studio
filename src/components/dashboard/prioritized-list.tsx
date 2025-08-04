@@ -10,7 +10,7 @@ import {
 import { TrendingUp } from 'lucide-react';
 import { StatusBadge } from './status-badge';
 import { Button } from '../ui/button';
-import { useMockData } from '@/hooks/use-mock-data';
+import { useMockData } from '@/hooks/use-mock-data.tsx';
 
 export async function PrioritizedList() {
   const { expenses, clubs } = useMockData();

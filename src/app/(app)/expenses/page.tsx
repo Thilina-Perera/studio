@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/card';
 import { ExpenseTable } from '@/components/dashboard/expense-table';
 import { useUser } from '@/hooks/use-user';
-import { useMockData } from '@/hooks/use-mock-data';
+import { useMockData } from '@/hooks/use-mock-data.tsx';
 import Link from 'next/link';
 
 export default function ExpensesPage() {

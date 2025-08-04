@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
-import { MockDataProvider } from '@/hooks/use-mock-data';
+import { MockDataProvider } from '@/hooks/use-mock-data.tsx';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 

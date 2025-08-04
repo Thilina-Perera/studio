@@ -1,3 +1,4 @@
+
 'use client';
 import { createContext, useContext, useState, ReactNode } from 'react';
 import type { User, Club, Expense, Event } from '@/lib/types';

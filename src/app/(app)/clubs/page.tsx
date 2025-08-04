@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useUser } from '@/hooks/use-user';
-import { useMockData } from '@/hooks/use-mock-data';
+import { useMockData } from '@/hooks/use-mock-data.tsx';
 import Link from 'next/link';
 import { PlusCircle } from 'lucide-react';
 

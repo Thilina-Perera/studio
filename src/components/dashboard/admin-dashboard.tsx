@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useMockData } from '@/hooks/use-mock-data';
+import { useMockData } from '@/hooks/use-mock-data.tsx';
 import { ExpenseTable } from './expense-table';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';

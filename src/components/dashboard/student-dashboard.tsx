@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useUser } from '@/hooks/use-user';
-import { useMockData } from '@/hooks/use-mock-data';
+import { useMockData } from '@/hooks/use-mock-data.tsx';
 import { DollarSign, FileText } from 'lucide-react';
 import { ExpenseTable } from './expense-table';
 import Link from 'next/link';
