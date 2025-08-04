@@ -1,3 +1,5 @@
+'use client';
+
 import { AdminDashboard } from '@/components/dashboard/admin-dashboard';
 import { AiExpensePrioritization } from '@/components/dashboard/ai-expense-prioritization';
 import { RepresentativeDashboard } from '@/components/dashboard/representative-dashboard';
