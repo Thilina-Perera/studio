@@ -1,3 +1,4 @@
+
 'use client';
 import { AppSidebar } from '@/components/shared/app-sidebar';
 import { AppHeader } from '@/components/shared/header';
@@ -41,7 +42,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [user, loading, router]);
   
-  if (loading || !user) {
+  if (!user) {
     return <AppLayoutSkeleton />;
   }
 
