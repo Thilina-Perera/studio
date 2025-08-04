@@ -46,12 +46,14 @@ const formSchema = z.object({
 });
 
 export default function NewExpensePage() {
-  const { user } = useUser();
+  const { user, role } = useUser();
   const { toast } = useToast();
   const router = useRouter();
-  const userClubs = mockClubs.filter(
-    (club) => club.representativeId === user?.id
-  );
+  
+  // Representatives can submit for their clubs, students can submit for any club.
+  const availableClubs = role === 'representative' 
+    ? mockClubs.filter((club) => club.representativeId === user?.id)
+    : mockClubs;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -98,7 +100,7 @@ export default function NewExpensePage() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {userClubs.map((club) => (
+                      {availableClubs.map((club) => (
                         <SelectItem key={club.id} value={club.id}>
                           {club.name}
                         </SelectItem>

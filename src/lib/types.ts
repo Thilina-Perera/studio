@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'representative';
+export type UserRole = 'admin' | 'representative' | 'student';
 
 export interface User {
   id: string;
@@ -25,6 +25,7 @@ export interface Expense {
   status: ExpenseStatus;
   submittedDate: string;
   receiptUrl?: string;
+  submitterId: string;
 }
 
 export interface PrioritizedExpense extends Expense {

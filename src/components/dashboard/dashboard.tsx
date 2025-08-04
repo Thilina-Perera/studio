@@ -6,9 +6,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 interface DashboardProps {
     adminDashboard: React.ReactNode;
     representativeDashboard: React.ReactNode;
+    studentDashboard: React.ReactNode;
 }
 
-export function Dashboard({ adminDashboard, representativeDashboard }: DashboardProps) {
+export function Dashboard({ adminDashboard, representativeDashboard, studentDashboard }: DashboardProps) {
   const { user, role } = useUser();
 
   if (!user) {
@@ -21,5 +22,9 @@ export function Dashboard({ adminDashboard, representativeDashboard }: Dashboard
     );
   }
 
-  return role === 'admin' ? adminDashboard : representativeDashboard;
+  if (role === 'admin') return adminDashboard;
+  if (role === 'representative') return representativeDashboard;
+  if (role === 'student') return studentDashboard;
+
+  return null;
 }

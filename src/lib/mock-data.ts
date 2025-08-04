@@ -15,6 +15,13 @@ export const mockUsers: User[] = [
     role: 'representative',
     avatarUrl: 'https://placehold.co/100x100.png',
   },
+  {
+    id: 'user-3',
+    name: 'Charlie Student',
+    email: 'student@reimburse.ai',
+    role: 'student',
+    avatarUrl: 'https://placehold.co/100x100.png'
+  }
 ];
 
 export const mockClubs: Club[] = [
@@ -46,6 +53,7 @@ export const mockExpenses: Expense[] = [
     amount: 250.0,
     status: 'Pending',
     submittedDate: '2024-07-20T10:00:00Z',
+    submitterId: 'user-2',
   },
   {
     id: 'exp-2',
@@ -54,6 +62,7 @@ export const mockExpenses: Expense[] = [
     amount: 1200.5,
     status: 'Under Review',
     submittedDate: '2024-07-19T14:30:00Z',
+    submitterId: 'user-2',
   },
   {
     id: 'exp-3',
@@ -62,6 +71,7 @@ export const mockExpenses: Expense[] = [
     amount: 85.75,
     status: 'Approved',
     submittedDate: '2024-07-15T18:00:00Z',
+    submitterId: 'user-2',
   },
   {
     id: 'exp-4',
@@ -70,6 +80,7 @@ export const mockExpenses: Expense[] = [
     amount: 750.0,
     status: 'Pending',
     submittedDate: '2024-07-21T09:00:00Z',
+    submitterId: 'user-1',
   },
   {
     id: 'exp-5',
@@ -78,6 +89,7 @@ export const mockExpenses: Expense[] = [
     amount: 150.0,
     status: 'Rejected',
     submittedDate: '2024-07-18T11:45:00Z',
+    submitterId: 'user-2',
   },
     {
     id: 'exp-6',
@@ -86,6 +98,7 @@ export const mockExpenses: Expense[] = [
     amount: 300.0,
     status: 'Under Review',
     submittedDate: '2024-07-22T10:00:00Z',
+    submitterId: 'user-2',
   },
   {
     id: 'exp-7',
@@ -94,6 +107,7 @@ export const mockExpenses: Expense[] = [
     amount: 200.0,
     status: 'Approved',
     submittedDate: '2024-07-12T13:20:00Z',
+    submitterId: 'user-2',
   },
 ];
 

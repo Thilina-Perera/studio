@@ -12,7 +12,7 @@ import {
 } from '../ui/sidebar';
 import { Logo } from '../logo';
 import { useUser } from '@/hooks/use-user';
-import { LayoutDashboard, Users, CreditCard, LogOut, Repeat } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, LogOut, Repeat, School } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 
@@ -26,10 +26,31 @@ const repNav = [
   { href: '/clubs', label: 'My Clubs', icon: Users },
 ];
 
+const studentNav = [
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/expenses', label: 'My Expenses', icon: CreditCard },
+]
+
 export function AppSidebar() {
   const pathname = usePathname();
-  const { role, toggleRole } = useUser();
-  const navItems = role === 'admin' ? adminNav : repNav;
+  const { role, toggleRole, getNextRole } = useUser();
+  
+  let navItems;
+  switch (role) {
+    case 'admin':
+        navItems = adminNav;
+        break;
+    case 'representative':
+        navItems = repNav;
+        break;
+    case 'student':
+        navItems = studentNav;
+        break;
+    default:
+        navItems = [];
+  }
+
+  const nextRole = getNextRole();
 
   return (
     <>
@@ -59,7 +80,7 @@ export function AppSidebar() {
         <div className="p-2 space-y-2">
             <Button variant="outline" className="w-full" onClick={toggleRole}>
                 <Repeat className="mr-2 h-4 w-4" />
-                Switch to {role === 'admin' ? 'Rep' : 'Admin'}
+                Switch to {nextRole.charAt(0).toUpperCase() + nextRole.slice(1)}
             </Button>
             <Button variant="ghost" className="w-full justify-start" asChild>
               <Link href="/">

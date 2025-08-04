@@ -9,12 +9,15 @@ import { mockUsers } from '@/lib/mock-data';
 
 const adminUser = mockUsers.find(u => u.role === 'admin')!;
 const repUser = mockUsers.find(u => u.role === 'representative')!;
+const studentUser = mockUsers.find(u => u.role === 'student')!;
+
+const roles: UserRole[] = ['admin', 'representative', 'student'];
 
 // Helper to get/set the role from localStorage for persistence across reloads
 const getInitialRole = (): UserRole => {
     if (typeof window !== 'undefined') {
         const storedRole = localStorage.getItem('userRole') as UserRole;
-        return storedRole === 'admin' || storedRole === 'representative' ? storedRole : 'admin';
+        return roles.includes(storedRole) ? storedRole : 'admin';
     }
     return 'admin';
 };
@@ -28,13 +31,21 @@ export function useUser() {
   }, [])
   
 
-  const user: User | null = role === 'admin' ? adminUser : repUser;
+  const user: User | null = role === 'admin' ? adminUser : role === 'representative' ? repUser : studentUser;
 
   const toggleRole = useCallback(() => {
-    const newRole = role === 'admin' ? 'representative' : 'admin';
+    const currentIndex = roles.indexOf(role);
+    const nextIndex = (currentIndex + 1) % roles.length;
+    const newRole = roles[nextIndex];
     localStorage.setItem('userRole', newRole);
     setRole(newRole);
   }, [role]);
 
-  return { user, role, toggleRole };
+  const getNextRole = () => {
+     const currentIndex = roles.indexOf(role);
+     const nextIndex = (currentIndex + 1) % roles.length;
+     return roles[nextIndex];
+  }
+
+  return { user, role, toggleRole, getNextRole };
 }

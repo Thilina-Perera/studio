@@ -13,14 +13,21 @@ import { mockClubs, mockExpenses } from '@/lib/mock-data';
 import Link from 'next/link';
 
 export default function ExpensesPage() {
-  const { user } = useUser();
-  const userClubs = mockClubs.filter(
-    (club) => club.representativeId === user?.id
-  );
-  const userClubIds = userClubs.map((club) => club.id);
-  const userExpenses = mockExpenses.filter((expense) =>
-    userClubIds.includes(expense.clubId)
-  );
+  const { user, role } = useUser();
+  
+  const userExpenses = mockExpenses.filter((expense) => {
+    if (role === 'representative') {
+        const userClubs = mockClubs.filter(
+            (club) => club.representativeId === user?.id
+        );
+        const userClubIds = userClubs.map((club) => club.id);
+        return userClubIds.includes(expense.clubId);
+    }
+    if (role === 'student') {
+        return expense.submitterId === user?.id;
+    }
+    return false;
+  });
 
   return (
     <div className="space-y-8">
@@ -29,7 +36,7 @@ export default function ExpensesPage() {
           <div>
             <CardTitle>My Expenses</CardTitle>
             <CardDescription>
-              All expenses you've submitted for your clubs.
+              All expenses you've submitted.
             </CardDescription>
           </div>
           <Button asChild>
