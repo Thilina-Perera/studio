@@ -5,11 +5,9 @@ import { RepresentativeDashboard } from '@/components/dashboard/representative-d
 import { StudentDashboard } from '@/components/dashboard/student-dashboard';
 import { Dashboard } from '@/components/dashboard/dashboard';
 import { useUser } from '@/hooks/use-user';
-import { useFirebase } from '@/hooks/use-firebase';
 
 export default function DashboardPage() {
-  const { user } = useUser();
-  const { clubs, expenses } = useFirebase();
+  const { clubs, expenses } = useUser();
   return (
     <Dashboard
       adminDashboard={<AdminDashboard allClubs={clubs} allExpenses={expenses} />}

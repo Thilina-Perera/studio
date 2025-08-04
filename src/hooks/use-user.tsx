@@ -8,14 +8,14 @@ import {
   useContext,
   ReactNode,
 } from 'react';
-import type { User as AppUser, UserRole } from '@/lib/types';
+import type { User as AppUser, UserRole, Club, Expense } from '@/lib/types';
 import { auth, db } from '@/lib/firebase';
 import {
   onAuthStateChanged,
   signOut,
   User as FirebaseAuthUser,
 } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot, QuerySnapshot, DocumentData } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 
 const roles: UserRole[] = ['admin', 'representative', 'student'];
@@ -24,6 +24,8 @@ interface UserContextType {
   user: AppUser | null;
   firebaseUser: FirebaseAuthUser | null;
   role: UserRole | null;
+  clubs: Club[];
+  expenses: Expense[];
   loading: boolean;
   logout: () => void;
   toggleRole: () => void;
@@ -38,6 +40,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
   );
   const [user, setUser] = useState<AppUser | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
+  const [clubs, setClubs] = useState<Club[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -71,13 +75,59 @@ export function UserProvider({ children }: { children: ReactNode }) {
           setFirebaseUser(null);
           setUser(null);
           setRole(null);
+          setClubs([]);
+          setExpenses([]);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
     // Cleanup auth subscription on unmount
     return () => unsubscribeAuth();
   }, []);
+
+  useEffect(() => {
+    if (!firebaseUser) {
+      return;
+    }
+
+    const clubsCollection = collection(db, 'clubs');
+    const expensesCollection = collection(db, 'expenses');
+
+    const unsubscribeClubs = onSnapshot(
+      clubsCollection,
+      (snapshot: QuerySnapshot<DocumentData>) => {
+        const clubsData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Club[];
+        setClubs(clubsData);
+      },
+      (error) => {
+        console.error('Error fetching clubs:', error);
+      }
+    );
+
+    const unsubscribeExpenses = onSnapshot(
+      expensesCollection,
+      (snapshot: QuerySnapshot<DocumentData>) => {
+        const expensesData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Expense[];
+        setExpenses(expensesData);
+        setLoading(false); // Consider loading finished after all data is attempted
+      },
+      (error) => {
+        console.error('Error fetching expenses:', error);
+        setLoading(false);
+      }
+    );
+
+    return () => {
+      unsubscribeClubs();
+      unsubscribeExpenses();
+    };
+  }, [firebaseUser]);
   
   const toggleRole = useCallback(async () => {
     if (!user) return;
@@ -99,6 +149,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     user,
     firebaseUser,
     role,
+    clubs,
+    expenses,
     loading,
     logout: handleLogout,
     toggleRole,

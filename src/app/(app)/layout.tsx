@@ -10,7 +10,6 @@ import { useUser } from '@/hooks/use-user';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FirebaseProvider, useFirebase } from '@/hooks/use-firebase';
 
 function AppLayoutSkeleton() {
   return (
@@ -46,20 +45,17 @@ function AppLayoutSkeleton() {
 }
 
 function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading: userLoading } = useUser();
-  const { loading: firebaseLoading } = useFirebase();
+  const { user, loading } = useUser();
   const router = useRouter();
-
-  const loading = userLoading || firebaseLoading;
 
   useEffect(() => {
     // If finished loading and there's still no user, redirect to login.
-    if (!userLoading && !user) {
+    if (!loading && !user) {
       router.push('/login');
     }
-  }, [user, userLoading, router]);
+  }, [user, loading, router]);
 
-  if (loading || !user) {
+  if (loading) {
     return <AppLayoutSkeleton />;
   }
 
@@ -79,9 +75,5 @@ function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <FirebaseProvider>
-      <AuthenticatedLayout>{children}</AuthenticatedLayout>
-    </FirebaseProvider>
-  );
+  return <AuthenticatedLayout>{children}</AuthenticatedLayout>;
 }
