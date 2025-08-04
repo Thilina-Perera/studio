@@ -64,15 +64,14 @@ export function AiExpensePrioritization({ expenses, clubs }: AiExpensePrioritiza
             <CardHeader>
             <CardTitle className="flex items-center gap-2 text-destructive">
                 <AlertTriangle className="h-5 w-5" />
-                Error
+                AI Prioritization Error
             </CardTitle>
             </CardHeader>
             <CardContent>
-            <p className="text-sm">Could not load AI-prioritized expenses.</p>
-            <p className="text-xs mt-2 text-muted-foreground">{error}</p>
+            <p className="text-sm font-medium">{error}</p>
             {error.includes("quota") && 
                 <p className="text-xs mt-2 text-muted-foreground">
-                    For more information, see the{' '}
+                    The free tier of the AI model has a daily usage limit. For more information, please see the{' '}
                     <Link href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" className="underline">
                         Google AI documentation on rate limits
                     </Link>.

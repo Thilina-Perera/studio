@@ -51,7 +51,7 @@ export function useAiPrioritization({ expenses }: UseAiPrioritizationProps) {
       setPrioritizedExpenses(enrichedExpenses);
     } catch (e: any) {
       console.error("Error prioritizing expenses:", e);
-      if (e.message && e.message.includes("429")) {
+      if (e.message && (e.message.includes("429") || e.message.includes("quota"))) {
         setError("You have exceeded your current API quota. Please check your Google AI plan and billing details, or try again later.");
       } else {
         setError(e.message || "An unknown error occurred.");
