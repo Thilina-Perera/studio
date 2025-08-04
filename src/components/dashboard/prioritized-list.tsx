@@ -10,10 +10,12 @@ import {
 import { TrendingUp } from 'lucide-react';
 import { StatusBadge } from './status-badge';
 import { Button } from '../ui/button';
-import { useMockData } from '@/hooks/use-mock-data.tsx';
+import { initialClubs, initialExpenses } from '@/lib/mock-data';
 
 export async function PrioritizedList() {
-  const { expenses, clubs } = useMockData();
+  const expenses = initialExpenses;
+  const clubs = initialClubs;
+  
   const expensesToPrioritize = expenses
     .filter((e) => e.status === 'Pending' || e.status === 'Under Review')
     .map((e) => ({
