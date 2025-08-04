@@ -12,10 +12,34 @@ import { ExpenseTable } from '@/components/dashboard/expense-table';
 import { useUser } from '@/hooks/use-user';
 import { useFirebase } from '@/hooks/use-firebase';
 import Link from 'next/link';
+import { Skeleton } from '@/components/ui/skeleton';
+
+function ExpensesPageSkeleton() {
+    return (
+        <Card>
+            <CardHeader>
+                <Skeleton className="h-8 w-1/4" />
+                <Skeleton className="h-4 w-1/2" />
+            </CardHeader>
+            <CardContent>
+                <div className="space-y-2">
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
 
 export default function ExpensesPage() {
-  const { user, role } = useUser();
-  const { clubs, expenses } = useFirebase();
+  const { user, role, loading: userLoading } = useUser();
+  const { clubs, expenses, loading: firebaseLoading } = useFirebase();
+
+  if (userLoading || firebaseLoading) {
+    return <ExpensesPageSkeleton />;
+  }
   
   const userExpenses = expenses.filter((expense) => {
     if (role === 'representative') {
@@ -28,6 +52,9 @@ export default function ExpensesPage() {
     if (role === 'student') {
         return expense.submitterId === user?.id;
     }
+    // Admin sees all expenses, so we shouldn't filter for them on this page
+    // but this page isn't for admins anyway based on nav.
+    // However, if an admin gets here, show no expenses.
     return false;
   });
 
