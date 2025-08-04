@@ -16,7 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
 import type { Expense } from '@/lib/types';
-import { mockClubs } from '@/lib/mock-data';
+import { useMockData } from '@/hooks/use-mock-data';
 import { StatusBadge } from './status-badge';
 import { format } from 'date-fns';
 
@@ -25,8 +25,9 @@ interface ExpenseTableProps {
 }
 
 export function ExpenseTable({ expenses }: ExpenseTableProps) {
+  const { clubs } = useMockData();
   const getClubName = (clubId: string) => {
-    return mockClubs.find((c) => c.id === clubId)?.name || 'Unknown Club';
+    return clubs.find((c) => c.id === clubId)?.name || 'Unknown Club';
   };
 
   return (

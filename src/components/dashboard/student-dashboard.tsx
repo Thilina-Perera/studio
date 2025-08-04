@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useUser } from '@/hooks/use-user';
-import { mockExpenses } from '@/lib/mock-data';
+import { useMockData } from '@/hooks/use-mock-data';
 import { DollarSign, FileText } from 'lucide-react';
 import { ExpenseTable } from './expense-table';
 import Link from 'next/link';
@@ -15,7 +15,8 @@ import { Button } from '../ui/button';
 
 export function StudentDashboard() {
   const { user } = useUser();
-  const userExpenses = mockExpenses.filter(
+  const { expenses } = useMockData();
+  const userExpenses = expenses.filter(
     (expense) => expense.submitterId === user?.id
   );
   
@@ -63,7 +64,7 @@ export function StudentDashboard() {
             <Button asChild>
                 <Link href="/expenses/new">New Expense</Link>
             </Button>
-        </CardHeader>
+        </Header>
         <CardContent>
           <ExpenseTable expenses={userExpenses.slice(0, 5)} />
         </CardContent>

@@ -1,5 +1,4 @@
 import { prioritizeExpenses } from '@/ai/flows/prioritize-expenses';
-import { mockExpenses, mockClubs } from '@/lib/mock-data';
 import type { PrioritizedExpense } from '@/lib/types';
 import {
   Card,
@@ -8,12 +7,14 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { AlertTriangle, TrendingUp } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 import { StatusBadge } from './status-badge';
 import { Button } from '../ui/button';
+import { useMockData } from '@/hooks/use-mock-data';
 
 export async function PrioritizedList() {
-  const expensesToPrioritize = mockExpenses
+  const { expenses, clubs } = useMockData();
+  const expensesToPrioritize = expenses
     .filter((e) => e.status === 'Pending' || e.status === 'Under Review')
     .map((e) => ({
       expenseId: e.id,
@@ -21,11 +22,19 @@ export async function PrioritizedList() {
       amount: e.amount,
     }));
 
+  if (expensesToPrioritize.length === 0) {
+    return (
+      <div className="text-center text-muted-foreground py-8">
+        No pending expenses to prioritize.
+      </div>
+    );
+  }
+
   const prioritizedResult = await prioritizeExpenses(expensesToPrioritize);
 
   const prioritizedExpenses: PrioritizedExpense[] = prioritizedResult
     .map((p) => {
-      const originalExpense = mockExpenses.find((e) => e.id === p.expenseId);
+      const originalExpense = expenses.find((e) => e.id === p.expenseId);
       if (!originalExpense) return null;
       return {
         ...originalExpense,
@@ -38,7 +47,7 @@ export async function PrioritizedList() {
     .slice(0, 3); // Take top 3
 
   const getClubName = (clubId: string) => {
-    return mockClubs.find((c) => c.id === clubId)?.name || 'Unknown Club';
+    return clubs.find((c) => c.id === clubId)?.name || 'Unknown Club';
   };
 
   return (

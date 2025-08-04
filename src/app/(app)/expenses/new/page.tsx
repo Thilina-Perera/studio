@@ -31,10 +31,11 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useUser } from '@/hooks/use-user';
-import { mockClubs } from '@/lib/mock-data';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useMockData } from '@/hooks/use-mock-data';
+import type { Expense } from '@/lib/types';
 
 const formSchema = z.object({
   clubId: z.string().min(1, 'Please select a club.'),
@@ -81,6 +82,7 @@ export default function NewExpensePage() {
   const { user, role } = useUser();
   const { toast } = useToast();
   const router = useRouter();
+  const { addExpense, clubs } = useMockData();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -98,11 +100,22 @@ export default function NewExpensePage() {
     
   // Representatives can submit for their clubs, students can submit for any club.
   const availableClubs = role === 'representative' 
-    ? mockClubs.filter((club) => club.representativeId === user?.id)
-    : mockClubs;
+    ? clubs.filter((club) => club.representativeId === user?.id)
+    : clubs;
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+    const newExpense: Expense = {
+        id: `exp-${Date.now()}`,
+        clubId: values.clubId,
+        description: values.description,
+        amount: values.amount,
+        status: 'Pending',
+        submittedDate: new Date().toISOString(),
+        submitterId: user!.id,
+    };
+
+    addExpense(newExpense);
+    
     toast({
         title: "Expense Submitted!",
         description: "Your expense has been successfully submitted for review.",

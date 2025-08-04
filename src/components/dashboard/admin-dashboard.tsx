@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { mockExpenses, mockClubs } from '@/lib/mock-data';
+import { useMockData } from '@/hooks/use-mock-data';
 import { ExpenseTable } from './expense-table';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -17,13 +17,19 @@ import { DateRange } from 'react-day-picker';
 import type { Expense } from '@/lib/types';
 
 export function AdminDashboard({ children }: { children: React.ReactNode }) {
+  const { expenses: allExpenses, clubs } = useMockData();
   const [descriptionFilter, setDescriptionFilter] = useState('');
   const [clubFilter, setClubFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState<DateRange | undefined>();
-  const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>(mockExpenses);
+  const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>(allExpenses);
+
+  useEffect(() => {
+    handleFilter();
+  }, [allExpenses]);
+
 
   const handleFilter = () => {
-    let expenses = mockExpenses;
+    let expenses = allExpenses;
 
     if (descriptionFilter) {
       expenses = expenses.filter(expense =>
@@ -77,7 +83,7 @@ export function AdminDashboard({ children }: { children: React.ReactNode }) {
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="all">All Clubs</SelectItem>
-                    {mockClubs.map(club => (
+                    {clubs.map(club => (
                         <SelectItem key={club.id} value={club.id}>{club.name}</SelectItem>
                     ))}
                 </SelectContent>

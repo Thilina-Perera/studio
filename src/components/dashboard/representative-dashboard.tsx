@@ -7,19 +7,20 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useUser } from '@/hooks/use-user';
-import { mockClubs, mockExpenses } from '@/lib/mock-data';
-import { DollarSign, FileText, Hourglass, Users } from 'lucide-react';
+import { useMockData } from '@/hooks/use-mock-data';
+import { DollarSign, FileText, Users } from 'lucide-react';
 import { ExpenseTable } from './expense-table';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 
 export function RepresentativeDashboard() {
   const { user } = useUser();
-  const userClubs = mockClubs.filter(
+  const { clubs, expenses } = useMockData();
+  const userClubs = clubs.filter(
     (club) => club.representativeId === user?.id
   );
   const userClubIds = userClubs.map((club) => club.id);
-  const userExpenses = mockExpenses.filter((expense) =>
+  const userExpenses = expenses.filter((expense) =>
     userClubIds.includes(expense.clubId)
   );
   

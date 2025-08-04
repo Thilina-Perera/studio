@@ -9,15 +9,16 @@ import {
 } from '@/components/ui/card';
 import { ExpenseTable } from '@/components/dashboard/expense-table';
 import { useUser } from '@/hooks/use-user';
-import { mockClubs, mockExpenses } from '@/lib/mock-data';
+import { useMockData } from '@/hooks/use-mock-data';
 import Link from 'next/link';
 
 export default function ExpensesPage() {
   const { user, role } = useUser();
+  const { clubs, expenses } = useMockData();
   
-  const userExpenses = mockExpenses.filter((expense) => {
+  const userExpenses = expenses.filter((expense) => {
     if (role === 'representative') {
-        const userClubs = mockClubs.filter(
+        const userClubs = clubs.filter(
             (club) => club.representativeId === user?.id
         );
         const userClubIds = userClubs.map((club) => club.id);

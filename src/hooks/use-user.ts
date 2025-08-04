@@ -5,11 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { User, UserRole } from '@/lib/types';
-import { mockUsers } from '@/lib/mock-data';
-
-const adminUser = mockUsers.find(u => u.role === 'admin')!;
-const repUser = mockUsers.find(u => u.role === 'representative')!;
-const studentUser = mockUsers.find(u => u.role === 'student')!;
+import { useMockData } from './use-mock-data';
 
 const roles: UserRole[] = ['admin', 'representative', 'student'];
 
@@ -25,6 +21,12 @@ const getInitialRole = (): UserRole => {
 
 export function useUser() {
   const [role, setRole] = useState<UserRole>('admin');
+  const { users } = useMockData();
+
+  const adminUser = users.find(u => u.role === 'admin')!;
+  const repUser = users.find(u => u.role === 'representative')!;
+  const studentUser = users.find(u => u.role === 'student')!;
+
 
   useEffect(() => {
     setRole(getInitialRole());

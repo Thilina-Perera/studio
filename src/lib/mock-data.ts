@@ -1,6 +1,7 @@
+
 import type { User, Club, Expense, Event } from './types';
 
-export const mockUsers: User[] = [
+export const initialUsers: User[] = [
   {
     id: 'user-1',
     name: 'Alice Admin',
@@ -24,7 +25,7 @@ export const mockUsers: User[] = [
   }
 ];
 
-export const mockClubs: Club[] = [
+export const initialClubs: Club[] = [
   {
     id: 'club-1',
     name: 'Coding Club',
@@ -45,7 +46,7 @@ export const mockClubs: Club[] = [
   },
 ];
 
-export const mockExpenses: Expense[] = [
+export const initialExpenses: Expense[] = [
   {
     id: 'exp-1',
     clubId: 'club-1',

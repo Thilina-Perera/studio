@@ -9,13 +9,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useUser } from '@/hooks/use-user';
-import { mockClubs } from '@/lib/mock-data';
+import { useMockData } from '@/hooks/use-mock-data';
 import Link from 'next/link';
 import { PlusCircle } from 'lucide-react';
 
 export default function ClubsPage() {
   const { user } = useUser();
-  const userClubs = mockClubs.filter(
+  const { clubs } = useMockData();
+  const userClubs = clubs.filter(
     (club) => club.representativeId === user?.id
   );
 
