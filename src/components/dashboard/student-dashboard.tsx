@@ -64,7 +64,7 @@ export function StudentDashboard() {
             <Button asChild>
                 <Link href="/expenses/new">New Expense</Link>
             </Button>
-        </Header>
+        </CardHeader>
         <CardContent>
           <ExpenseTable expenses={userExpenses.slice(0, 5)} />
         </CardContent>
