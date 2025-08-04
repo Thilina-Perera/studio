@@ -60,7 +60,8 @@ export default function NewExpensePage() {
     defaultValues: {
       clubId: '',
       description: '',
-      amount: 0,
+      amount: undefined,
+      receipt: undefined,
     },
   });
 
@@ -146,11 +147,11 @@ export default function NewExpensePage() {
              <FormField
               control={form.control}
               name="receipt"
-              render={({ field }) => (
+              render={({ field: { onChange, value, ...rest } }) => (
                 <FormItem>
                   <FormLabel>Receipt</FormLabel>
                   <FormControl>
-                    <Input type="file" {...field} />
+                    <Input type="file" onChange={e => onChange(e.target.files)} {...rest} />
                   </FormControl>
                    <FormDescription>
                     Upload a clear image or PDF of the receipt.
