@@ -12,11 +12,20 @@ import Link from 'next/link';
 import { RegisterClubDialog } from '@/components/clubs/register-club-dialog';
 
 export default function ClubsPage() {
-  const { user, clubs } = useUser();
+  const { user, clubs, loading } = useUser();
 
+  if (loading || !user) {
+    // You can show a loading spinner or skeleton here
+    return (
+        <div className="space-y-8">
+            <h1 className="text-3xl font-bold tracking-tight">Loading Clubs...</h1>
+        </div>
+    )
+  }
+  
   // The AppLayout guarantees that user and clubs are loaded.
   const userClubs = clubs.filter(
-    (club) => club.representativeId === user!.id
+    (club) => club.representativeId === user.id
   );
 
   return (
