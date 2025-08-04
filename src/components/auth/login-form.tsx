@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -44,10 +45,14 @@ export function LoginForm() {
       router.push('/dashboard');
     } catch (error: any) {
       console.error("Login Error:", error);
+      let description = "Could not log you in. Please check your credentials.";
+      if (error.code === 'auth/invalid-credential') {
+        description = "Invalid email or password. Please try again.";
+      }
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: error.message || "Could not log you in. Please check your credentials.",
+        description: description,
       });
     }
   }
