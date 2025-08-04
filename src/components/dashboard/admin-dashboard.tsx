@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 import {
   Card,
   CardContent,
@@ -8,13 +9,12 @@ import {
 } from '@/components/ui/card';
 import { mockExpenses, mockClubs } from '@/lib/mock-data';
 import { ExpenseTable } from './expense-table';
-import { AiExpensePrioritization } from './ai-expense-prioritization';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { DateRangePicker } from '../ui/date-range-picker';
 
-export function AdminDashboard() {
+export function AdminDashboard({ children }: { children: React.ReactNode }) {
   return (
     <div className="space-y-8">
       <div>
@@ -24,7 +24,7 @@ export function AdminDashboard() {
         </p>
       </div>
 
-      <AiExpensePrioritization />
+      {children}
 
       <Card>
         <CardHeader>

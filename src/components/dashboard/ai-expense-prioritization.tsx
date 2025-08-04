@@ -36,6 +36,7 @@ export function AiExpensePrioritization() {
         AI Priority Queue
       </h2>
       <Suspense fallback={<PrioritizedListSkeleton />}>
+        {/* @ts-expect-error Server Component */}
         <PrioritizedList />
       </Suspense>
     </div>

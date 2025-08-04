@@ -1,5 +1,6 @@
 'use client';
 import { AdminDashboard } from '@/components/dashboard/admin-dashboard';
+import { AiExpensePrioritization } from '@/components/dashboard/ai-expense-prioritization';
 import { RepresentativeDashboard } from '@/components/dashboard/representative-dashboard';
 import { useUser } from '@/hooks/use-user';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,5 +18,5 @@ export default function DashboardPage() {
     );
   }
 
-  return role === 'admin' ? <AdminDashboard /> : <RepresentativeDashboard />;
+  return role === 'admin' ? <AdminDashboard><AiExpensePrioritization /></AdminDashboard> : <RepresentativeDashboard />;
 }
