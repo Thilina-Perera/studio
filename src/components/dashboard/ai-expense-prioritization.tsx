@@ -1,4 +1,3 @@
-'use client';
 import { Suspense } from 'react';
 import { PrioritizedList } from './prioritized-list';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
