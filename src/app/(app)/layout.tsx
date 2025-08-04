@@ -10,6 +10,7 @@ import { useUser } from '@/hooks/use-user';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FirebaseProvider, useFirebase } from '@/hooks/use-firebase';
 
 function AppLayoutSkeleton() {
   return (
@@ -44,25 +45,21 @@ function AppLayoutSkeleton() {
   );
 }
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useUser();
+function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
+  const { user, loading: userLoading } = useUser();
+  const { loading: firebaseLoading } = useFirebase();
   const router = useRouter();
+
+  const loading = userLoading || firebaseLoading;
 
   useEffect(() => {
     // If finished loading and there's still no user, redirect to login.
-    if (!loading && !user) {
+    if (!userLoading && !user) {
       router.push('/login');
     }
-  }, [user, loading, router]);
+  }, [user, userLoading, router]);
 
-  // Show skeleton while loading user auth state OR if there is no user yet
-  // This is the gatekeeper for all authenticated routes
-  if (loading) {
-    return <AppLayoutSkeleton />;
-  }
-
-  // If we finished loading but there is no user, we are about to redirect, so don't render children.
-  if (!user) {
+  if (loading || !user) {
     return <AppLayoutSkeleton />;
   }
 
@@ -78,5 +75,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </SidebarInset>
     </SidebarProvider>
+  );
+}
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <FirebaseProvider>
+      <AuthenticatedLayout>{children}</AuthenticatedLayout>
+    </FirebaseProvider>
   );
 }

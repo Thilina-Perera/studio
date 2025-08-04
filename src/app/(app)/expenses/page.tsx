@@ -10,9 +10,11 @@ import {
 import { ExpenseTable } from '@/components/dashboard/expense-table';
 import { useUser } from '@/hooks/use-user';
 import Link from 'next/link';
+import { useFirebase } from '@/hooks/use-firebase';
 
 export default function ExpensesPage() {
-  const { user, role, clubs, expenses } = useUser();
+  const { user, role } = useUser();
+  const { clubs, expenses } = useFirebase();
 
   // AppLayout guarantees user, role, clubs, and expenses are loaded.
   const userExpenses = expenses.filter((expense) => {

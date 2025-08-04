@@ -12,6 +12,7 @@ import { ExpenseTable } from './expense-table';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import type { Club, Expense } from '@/lib/types';
+import { useFirebase } from '@/hooks/use-firebase';
 
 interface RepresentativeDashboardProps {
   allClubs: Club[];
@@ -21,9 +22,14 @@ interface RepresentativeDashboardProps {
 export function RepresentativeDashboard({ allClubs, allExpenses }: RepresentativeDashboardProps) {
   const { user } = useUser();
 
-  // AppLayout guarantees user, clubs, and expenses are loaded.
+  if (!user) {
+    // This can happen briefly while the user is being loaded.
+    // The AppLayout should prevent this from being a major issue.
+    return null;
+  }
+
   const userClubs = allClubs.filter(
-    (club) => club.representativeId === user!.id
+    (club) => club.representativeId === user.id
   );
   const userClubIds = userClubs.map((club) => club.id);
   const userExpenses = allExpenses.filter((expense) =>
@@ -39,7 +45,7 @@ export function RepresentativeDashboard({ allClubs, allExpenses }: Representativ
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
-          Welcome, {user!.name}
+          Welcome, {user.name}
         </h1>
         <p className="text-muted-foreground">
           Here's an overview of your club's financial activities.

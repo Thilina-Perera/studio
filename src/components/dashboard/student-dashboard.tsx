@@ -12,6 +12,7 @@ import { ExpenseTable } from './expense-table';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import type { Club, Expense } from '@/lib/types';
+import { useFirebase } from '@/hooks/use-firebase';
 
 interface StudentDashboardProps {
   allClubs: Club[];
@@ -21,9 +22,12 @@ interface StudentDashboardProps {
 export function StudentDashboard({ allClubs, allExpenses }: StudentDashboardProps) {
   const { user } = useUser();
 
-  // AppLayout guarantees user, clubs, and expenses are loaded.
+  if (!user) {
+    return null;
+  }
+
   const userExpenses = allExpenses.filter(
-    (expense) => expense.submitterId === user!.id
+    (expense) => expense.submitterId === user.id
   );
 
   const totalExpenses = userExpenses.length;
@@ -35,7 +39,7 @@ export function StudentDashboard({ allClubs, allExpenses }: StudentDashboardProp
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
-          Welcome, {user!.name}
+          Welcome, {user.name}
         </h1>
         <p className="text-muted-foreground">
           Here's an overview of your submitted expenses.
