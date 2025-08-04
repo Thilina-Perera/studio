@@ -6,13 +6,12 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
-  SidebarMenuButton,
   SidebarFooter,
   SidebarSeparator,
 } from '../ui/sidebar';
 import { Logo } from '../logo';
 import { useUser } from '@/hooks/use-user';
-import { LayoutDashboard, Users, CreditCard, LogOut, Repeat, School } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, LogOut, Repeat } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 
@@ -33,7 +32,7 @@ const studentNav = [
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { role, toggleRole, getNextRole } = useUser();
+  const { role, toggleRole, getNextRole, logout } = useUser();
   
   let navItems;
   switch (role) {
@@ -78,15 +77,15 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarSeparator />
         <div className="p-2 space-y-2">
-            <Button variant="outline" className="w-full" onClick={toggleRole}>
-                <Repeat className="mr-2 h-4 w-4" />
-                Switch to {nextRole.charAt(0).toUpperCase() + nextRole.slice(1)}
-            </Button>
-            <Button variant="ghost" className="w-full justify-start" asChild>
-              <Link href="/">
+            {nextRole && (
+              <Button variant="outline" className="w-full" onClick={toggleRole}>
+                  <Repeat className="mr-2 h-4 w-4" />
+                  Switch to {nextRole.charAt(0).toUpperCase() + nextRole.slice(1)}
+              </Button>
+            )}
+            <Button variant="ghost" className="w-full justify-start" onClick={logout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Log Out
-              </Link>
             </Button>
         </div>
       </SidebarFooter>

@@ -14,6 +14,9 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { auth } from '@/lib/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -22,6 +25,7 @@ const formSchema = z.object({
 
 export function LoginForm() {
   const router = useRouter();
+  const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -30,10 +34,22 @@ export function LoginForm() {
     },
   });
 
-  // In a real app, this would handle the actual login logic.
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    router.push('/dashboard');
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      toast({
+        title: 'Logged In!',
+        description: "You've been successfully logged in.",
+      });
+      router.push('/dashboard');
+    } catch (error: any) {
+      console.error("Login Error:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: error.message || "Could not log you in. Please check your credentials.",
+      });
+    }
   }
 
   return (
@@ -65,8 +81,8 @@ export function LoginForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">
-          Login
+        <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+           {form.formState.isSubmitting ? "Logging in..." : "Login"}
         </Button>
       </form>
     </Form>

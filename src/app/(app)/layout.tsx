@@ -6,8 +6,45 @@ import {
   Sidebar,
   SidebarInset,
 } from '@/components/ui/sidebar';
+import { useUser } from '@/hooks/use-user';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+
+function AppLayoutSkeleton() {
+    return (
+        <div className="flex min-h-screen">
+            <div className="hidden md:block">
+                <div className="w-64 h-full p-4 space-y-4">
+                    <Skeleton className="h-10 w-3/4" />
+                    <Skeleton className="h-8 w-full" />
+                    <Skeleton className="h-8 w-full" />
+                    <Skeleton className="h-8 w-full" />
+                </div>
+            </div>
+            <div className="flex-1 p-8">
+                <Skeleton className="h-12 w-full mb-8" />
+                <Skeleton className="h-96 w-full" />
+            </div>
+        </div>
+    )
+}
+
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
+  
+  if (loading || !user) {
+    return <AppLayoutSkeleton />;
+  }
+
   return (
     <SidebarProvider>
       <Sidebar>

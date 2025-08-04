@@ -14,6 +14,10 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { auth, db } from '@/lib/firebase';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.'}),
@@ -23,6 +27,7 @@ const formSchema = z.object({
 
 export function SignupForm() {
   const router = useRouter();
+  const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -32,10 +37,35 @@ export function SignupForm() {
     },
   });
 
-  // In a real app, this would handle the actual signup logic.
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    router.push('/dashboard');
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const user = userCredential.user;
+
+      // Update user profile with name
+      await updateProfile(user, { displayName: values.name });
+
+      // Create a user document in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        id: user.uid,
+        name: values.name,
+        email: values.email,
+        role: 'student', // Default role
+      });
+
+      toast({
+        title: 'Account Created!',
+        description: 'Your account has been successfully created.',
+      });
+      router.push('/dashboard');
+    } catch (error: any) {
+      console.error("Signup Error:", error);
+       toast({
+        variant: 'destructive',
+        title: 'Sign Up Failed',
+        description: error.message || "Could not create your account. Please try again.",
+      });
+    }
   }
 
   return (
@@ -80,8 +110,8 @@ export function SignupForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">
-          Create account
+        <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+           {form.formState.isSubmitting ? "Creating account..." : "Create account"}
         </Button>
       </form>
     </Form>

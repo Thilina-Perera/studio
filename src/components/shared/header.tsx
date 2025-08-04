@@ -11,12 +11,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUser } from '@/hooks/use-user';
-import Link from 'next/link';
 import { SidebarTrigger } from '../ui/sidebar';
 import { LogOut } from 'lucide-react';
 
 export function AppHeader() {
-  const { user } = useUser();
+  const { user, logout } = useUser();
   const initials = user?.name.split(' ').map(n => n[0]).join('') || 'U';
 
   return (
@@ -43,11 +42,9 @@ export function AppHeader() {
           <DropdownMenuItem>Settings</DropdownMenuItem>
           <DropdownMenuItem>Support</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-             <Link href="/">
-                <LogOut className="mr-2 h-4 w-4" />
-                Log Out
-              </Link>
+          <DropdownMenuItem onClick={logout}>
+             <LogOut className="mr-2 h-4 w-4" />
+             Log Out
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
