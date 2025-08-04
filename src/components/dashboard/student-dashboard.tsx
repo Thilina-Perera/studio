@@ -1,4 +1,3 @@
-
 'use client';
 import {
   Card,
@@ -12,15 +11,21 @@ import { DollarSign, FileText } from 'lucide-react';
 import { ExpenseTable } from './expense-table';
 import Link from 'next/link';
 import { Button } from '../ui/button';
+import type { Club, Expense } from '@/lib/types';
 
-export function StudentDashboard() {
-  const { user, expenses, clubs } = useUser();
+interface StudentDashboardProps {
+  allClubs: Club[];
+  allExpenses: Expense[];
+}
 
-  // Data is guaranteed to be loaded by AppLayout, so we can safely use it here.
-  const userExpenses = expenses.filter(
+export function StudentDashboard({ allClubs, allExpenses }: StudentDashboardProps) {
+  const { user } = useUser();
+
+  // AppLayout guarantees user, clubs, and expenses are loaded.
+  const userExpenses = allExpenses.filter(
     (expense) => expense.submitterId === user!.id
   );
-  
+
   const totalExpenses = userExpenses.length;
   const pendingAmount = userExpenses
     .filter((e) => e.status === 'Pending' || e.status === 'Under Review')
@@ -29,7 +34,9 @@ export function StudentDashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Welcome, {user!.name}</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Welcome, {user!.name}
+        </h1>
         <p className="text-muted-foreground">
           Here's an overview of your submitted expenses.
         </p>
@@ -37,39 +44,39 @@ export function StudentDashboard() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-                <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-                <div className="text-2xl font-bold">{totalExpenses}</div>
-            </CardContent>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalExpenses}</div>
+          </CardContent>
         </Card>
-         <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Pending Amount</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-                <div className="text-2xl font-bold">${pendingAmount.toFixed(2)}</div>
-            </CardContent>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Amount</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${pendingAmount.toFixed(2)}</div>
+          </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-                <CardTitle>Recent Expenses</CardTitle>
-                <CardDescription>
-                    Your most recently submitted expenses.
-                </CardDescription>
-            </div>
-            <Button asChild>
-                <Link href="/expenses/new">New Expense</Link>
-            </Button>
+          <div>
+            <CardTitle>Recent Expenses</CardTitle>
+            <CardDescription>
+              Your most recently submitted expenses.
+            </CardDescription>
+          </div>
+          <Button asChild>
+            <Link href="/expenses/new">New Expense</Link>
+          </Button>
         </CardHeader>
         <CardContent>
-          <ExpenseTable expenses={userExpenses.slice(0, 5)} clubs={clubs} />
+          <ExpenseTable expenses={userExpenses.slice(0, 5)} clubs={allClubs} />
         </CardContent>
       </Card>
     </div>

@@ -1,4 +1,3 @@
-
 'use client';
 import { Button } from '@/components/ui/button';
 import {
@@ -6,7 +5,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription
+  CardDescription,
 } from '@/components/ui/card';
 import { useUser } from '@/hooks/use-user';
 import Link from 'next/link';
@@ -15,7 +14,7 @@ import { PlusCircle } from 'lucide-react';
 export default function ClubsPage() {
   const { user, clubs } = useUser();
 
-  // Data is guaranteed to be loaded by AppLayout
+  // The AppLayout guarantees that user and clubs are loaded.
   const userClubs = clubs.filter(
     (club) => club.representativeId === user!.id
   );
@@ -24,14 +23,12 @@ export default function ClubsPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-            <h1 className="text-3xl font-bold tracking-tight">My Clubs</h1>
-            <p className="text-muted-foreground">
-                Manage your registered clubs.
-            </p>
+          <h1 className="text-3xl font-bold tracking-tight">My Clubs</h1>
+          <p className="text-muted-foreground">Manage your registered clubs.</p>
         </div>
         <Button>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Register New Club
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Register New Club
         </Button>
       </div>
 
@@ -50,7 +47,9 @@ export default function ClubsPage() {
           </Card>
         ))}
         {userClubs.length === 0 && (
-            <p className="text-muted-foreground md:col-span-3">You are not a representative for any clubs.</p>
+          <p className="text-muted-foreground md:col-span-3">
+            You are not a representative for any clubs.
+          </p>
         )}
       </div>
     </div>

@@ -1,4 +1,3 @@
-
 'use client';
 import {
   Card,
@@ -12,26 +11,36 @@ import { DollarSign, FileText, Users } from 'lucide-react';
 import { ExpenseTable } from './expense-table';
 import Link from 'next/link';
 import { Button } from '../ui/button';
+import type { Club, Expense } from '@/lib/types';
 
-export function RepresentativeDashboard() {
-  const { user, clubs, expenses } = useUser();
-  
-  // Data is guaranteed to be loaded by AppLayout, so we can safely use it here.
-  const userClubs = clubs.filter(
+interface RepresentativeDashboardProps {
+  allClubs: Club[];
+  allExpenses: Expense[];
+}
+
+export function RepresentativeDashboard({ allClubs, allExpenses }: RepresentativeDashboardProps) {
+  const { user } = useUser();
+
+  // AppLayout guarantees user, clubs, and expenses are loaded.
+  const userClubs = allClubs.filter(
     (club) => club.representativeId === user!.id
   );
   const userClubIds = userClubs.map((club) => club.id);
-  const userExpenses = expenses.filter((expense) =>
+  const userExpenses = allExpenses.filter((expense) =>
     userClubIds.includes(expense.clubId)
   );
-  
+
   const totalExpenses = userExpenses.length;
-  const pendingAmount = userExpenses.filter(e => e.status === 'Pending' || e.status === 'Under Review').reduce((sum, e) => sum + e.amount, 0);
+  const pendingAmount = userExpenses
+    .filter((e) => e.status === 'Pending' || e.status === 'Under Review')
+    .reduce((sum, e) => sum + e.amount, 0);
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Welcome, {user!.name}</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Welcome, {user!.name}
+        </h1>
         <p className="text-muted-foreground">
           Here's an overview of your club's financial activities.
         </p>
@@ -39,51 +48,53 @@ export function RepresentativeDashboard() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-                <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-                <div className="text-2xl font-bold">{totalExpenses}</div>
-            </CardContent>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalExpenses}</div>
+          </CardContent>
         </Card>
-         <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Pending Amount</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-                <div className="text-2xl font-bold">${pendingAmount.toFixed(2)}</div>
-            </CardContent>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Amount</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${pendingAmount.toFixed(2)}</div>
+          </CardContent>
         </Card>
-         <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Your Clubs</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-                <div className="text-2xl font-bold">{userClubs.length}</div>
-                 <p className="text-xs text-muted-foreground truncate">
-                   {userClubs.length > 0 ? userClubs.map(c => c.name).join(', ') : 'No clubs assigned'}
-                 </p>
-            </CardContent>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Your Clubs</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{userClubs.length}</div>
+            <p className="text-xs text-muted-foreground truncate">
+              {userClubs.length > 0
+                ? userClubs.map((c) => c.name).join(', ')
+                : 'No clubs assigned'}
+            </p>
+          </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-                <CardTitle>Recent Expenses</CardTitle>
-                <CardDescription>
-                    Your most recently submitted expenses.
-                </CardDescription>
-            </div>
-            <Button asChild>
-                <Link href="/expenses/new">New Expense</Link>
-            </Button>
+          <div>
+            <CardTitle>Recent Expenses</CardTitle>
+            <CardDescription>
+              Your most recently submitted expenses.
+            </CardDescription>
+          </div>
+          <Button asChild>
+            <Link href="/expenses/new">New Expense</Link>
+          </Button>
         </CardHeader>
         <CardContent>
-          <ExpenseTable expenses={userExpenses.slice(0, 5)} clubs={clubs} />
+          <ExpenseTable expenses={userExpenses.slice(0, 5)} clubs={allClubs} />
         </CardContent>
       </Card>
     </div>

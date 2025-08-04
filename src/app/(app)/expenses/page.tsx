@@ -1,4 +1,3 @@
-
 'use client';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,17 +14,17 @@ import Link from 'next/link';
 export default function ExpensesPage() {
   const { user, role, clubs, expenses } = useUser();
 
-  // Data is guaranteed to be loaded by AppLayout
+  // AppLayout guarantees user, role, clubs, and expenses are loaded.
   const userExpenses = expenses.filter((expense) => {
     if (role === 'representative') {
-        const userClubs = clubs.filter(
-            (club) => club.representativeId === user!.id
-        );
-        const userClubIds = userClubs.map((club) => club.id);
-        return userClubIds.includes(expense.clubId);
+      const userClubs = clubs.filter(
+        (club) => club.representativeId === user!.id
+      );
+      const userClubIds = userClubs.map((club) => club.id);
+      return userClubIds.includes(expense.clubId);
     }
     if (role === 'student') {
-        return expense.submitterId === user!.id;
+      return expense.submitterId === user!.id;
     }
     // Admin sees all expenses, so we shouldn't filter for them on this page
     // but this page isn't for admins anyway based on nav.
@@ -39,9 +38,7 @@ export default function ExpensesPage() {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>My Expenses</CardTitle>
-            <CardDescription>
-              All expenses you've submitted.
-            </CardDescription>
+            <CardDescription>All expenses you've submitted.</CardDescription>
           </div>
           <Button asChild>
             <Link href="/expenses/new">New Expense</Link>
