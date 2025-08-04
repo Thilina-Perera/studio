@@ -20,6 +20,7 @@ export type ExpenseStatus = 'Pending' | 'Under Review' | 'Approved' | 'Rejected'
 export interface Expense {
   id: string;
   clubId: string;
+  clubName?: string; // Add optional clubName
   description: string;
   amount: number;
   status: ExpenseStatus;

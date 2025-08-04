@@ -25,8 +25,9 @@ export function PrioritizedList({ prioritizedExpenses, clubs }: PrioritizedListP
     );
   }
 
-  const getClubName = (clubId: string) => {
-    return clubs.find((c) => c.id === clubId)?.name || 'Unknown Club';
+  const getClubName = (expense: PrioritizedExpense) => {
+    if (expense.clubName) return expense.clubName;
+    return clubs.find((c) => c.id === expense.clubId)?.name || 'Unknown Club';
   };
 
   return (
@@ -43,7 +44,7 @@ export function PrioritizedList({ prioritizedExpenses, clubs }: PrioritizedListP
           <CardContent className="space-y-4">
             <div>
               <p className="text-sm font-semibold">
-                {getClubName(expense.clubId)}
+                {getClubName(expense)}
               </p>
               <p className="text-sm text-muted-foreground">
                 {expense.description}

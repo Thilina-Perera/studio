@@ -26,8 +26,9 @@ interface ExpenseTableProps {
 }
 
 export function ExpenseTable({ expenses, clubs }: ExpenseTableProps) {
-  const getClubName = (clubId: string) => {
-    return clubs.find((c) => c.id === clubId)?.name || 'Unknown Club';
+  const getClubName = (expense: Expense) => {
+    if (expense.clubName) return expense.clubName;
+    return clubs.find((c) => c.id === expense.clubId)?.name || 'Unknown Club';
   };
 
   return (
@@ -48,7 +49,7 @@ export function ExpenseTable({ expenses, clubs }: ExpenseTableProps) {
         <TableBody>
           {expenses.map((expense) => (
             <TableRow key={expense.id}>
-              <TableCell className="font-medium">{getClubName(expense.clubId)}</TableCell>
+              <TableCell className="font-medium">{getClubName(expense)}</TableCell>
               <TableCell>{expense.description}</TableCell>
               <TableCell className="text-right">
                 ${expense.amount.toFixed(2)}

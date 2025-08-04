@@ -79,8 +79,10 @@ export default function NewExpensePage() {
         return;
     }
     try {
+        const selectedClub = clubs.find(c => c.id === values.clubId);
         const newExpense: Omit<Expense, 'id'> = {
             clubId: values.clubId,
+            clubName: selectedClub?.name || 'Unknown Club',
             description: values.description,
             amount: values.amount,
             status: 'Pending',
