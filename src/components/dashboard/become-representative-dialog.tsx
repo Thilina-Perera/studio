@@ -51,7 +51,9 @@ export function BecomeRepresentativeDialog({ user, clubs }: BecomeRepresentative
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const clubToUpdate = clubs.find((club) => club.id === values.clubId);
+    const clubToUpdate = clubs.find(
+      (club) => club.id.toLowerCase() === values.clubId.toLowerCase()
+    );
 
     if (!clubToUpdate) {
       form.setError('clubId', {
@@ -71,7 +73,8 @@ export function BecomeRepresentativeDialog({ user, clubs }: BecomeRepresentative
     }
 
     try {
-      const clubRef = doc(db, 'clubs', values.clubId);
+      // Use the actual club ID (with correct casing) from the found club object
+      const clubRef = doc(db, 'clubs', clubToUpdate.id);
       await updateDoc(clubRef, {
         representativeId: user.id,
       });
