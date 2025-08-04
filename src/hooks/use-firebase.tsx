@@ -25,17 +25,21 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const fetchData = async () => {
         try {
+            console.log("Fetching data from Firestore...");
             const usersSnapshot = await getDocs(collection(db, "users"));
             const usersData = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as User[];
             setUsers(usersData);
+            console.log("Fetched Users:", usersData);
             
             const clubsSnapshot = await getDocs(collection(db, "clubs"));
             const clubsData = clubsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Club[];
             setClubs(clubsData);
+            console.log("Fetched Clubs:", clubsData);
 
             const expensesSnapshot = await getDocs(collection(db, "expenses"));
             const expensesData = expensesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Expense[];
             setExpenses(expensesData);
+            console.log("Fetched Expenses:", expensesData);
 
         } catch (error) {
             console.error("Error fetching data from Firestore: ", error);
