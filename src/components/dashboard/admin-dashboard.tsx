@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { ExpenseTable } from './expense-table';
-import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import {
   Select,
@@ -20,7 +19,6 @@ import {
 import { DateRangePicker } from '../ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import type { Club, Expense } from '@/lib/types';
-import { Skeleton } from '../ui/skeleton';
 import { AiExpensePrioritization } from './ai-expense-prioritization';
 
 interface AdminDashboardProps {
@@ -35,7 +33,6 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
   const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>([]);
 
   useEffect(() => {
-    // Start with all expenses and apply filters
     let expenses = allExpenses;
 
     if (descriptionFilter) {
@@ -51,15 +48,14 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
     }
 
     if (dateFilter?.from) {
-       expenses = expenses.filter(expense => {
+      expenses = expenses.filter((expense) => {
         const submittedDate = new Date(expense.submittedDate);
         const fromDate = new Date(dateFilter.from!);
-        // If there's a 'to' date, use it, otherwise check from 'from' date onwards
         const toDate = dateFilter.to ? new Date(dateFilter.to) : new Date();
         if (dateFilter.to) {
-            return submittedDate >= fromDate && submittedDate <= toDate;
+          return submittedDate >= fromDate && submittedDate <= toDate;
         } else {
-            return submittedDate >= fromDate;
+          return submittedDate >= fromDate;
         }
       });
     }

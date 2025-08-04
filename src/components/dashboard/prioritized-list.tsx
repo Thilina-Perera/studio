@@ -1,6 +1,5 @@
-
-import { prioritizeExpenses } from '@/ai/flows/prioritize-expenses';
-import type { PrioritizedExpense } from '@/lib/types';
+'use client';
+import type { Club, PrioritizedExpense } from '@/lib/types';
 import {
   Card,
   CardContent,
@@ -11,23 +10,14 @@ import {
 import { TrendingUp } from 'lucide-react';
 import { StatusBadge } from './status-badge';
 import { Button } from '../ui/button';
-import type { Expense, Club } from '@/lib/types';
 
 interface PrioritizedListProps {
-    allExpenses: Expense[];
-    allClubs: Club[];
+  prioritizedExpenses: PrioritizedExpense[];
+  clubs: Club[];
 }
 
-export async function PrioritizedList({ allExpenses, allClubs }: PrioritizedListProps) {
-  const pendingExpenses = allExpenses.filter(e => ["Pending", "Under Review"].includes(e.status));
-
-  const expensesToPrioritize = pendingExpenses.map((e) => ({
-      expenseId: e.id,
-      description: e.description,
-      amount: e.amount,
-  }));
-
-  if (expensesToPrioritize.length === 0) {
+export function PrioritizedList({ prioritizedExpenses, clubs }: PrioritizedListProps) {
+  if (prioritizedExpenses.length === 0) {
     return (
       <div className="text-center text-muted-foreground py-8">
         No pending expenses to prioritize.
@@ -35,24 +25,8 @@ export async function PrioritizedList({ allExpenses, allClubs }: PrioritizedList
     );
   }
 
-  const prioritizedResult = await prioritizeExpenses(expensesToPrioritize);
-
-  const prioritizedExpenses: PrioritizedExpense[] = prioritizedResult
-    .map((p) => {
-      const originalExpense = pendingExpenses.find((e) => e.id === p.expenseId);
-      if (!originalExpense) return null;
-      return {
-        ...originalExpense,
-        priorityScore: p.priorityScore,
-        reason: p.reason,
-      };
-    })
-    .filter((e): e is PrioritizedExpense => e !== null)
-    .sort((a, b) => b.priorityScore - a.priorityScore)
-    .slice(0, 3); // Take top 3
-
   const getClubName = (clubId: string) => {
-    return allClubs.find((c) => c.id === clubId)?.name || 'Unknown Club';
+    return clubs.find((c) => c.id === clubId)?.name || 'Unknown Club';
   };
 
   return (
@@ -64,9 +38,7 @@ export async function PrioritizedList({ allExpenses, allClubs }: PrioritizedList
               <TrendingUp className="h-5 w-5" />
               <span>High Priority</span>
             </CardTitle>
-            <CardDescription>
-              AI-flagged for immediate review
-            </CardDescription>
+            <CardDescription>AI-flagged for immediate review</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -78,12 +50,10 @@ export async function PrioritizedList({ allExpenses, allClubs }: PrioritizedList
               </p>
             </div>
             <div className="flex justify-between items-center">
-              <p className="text-xl font-bold">
-                ${expense.amount.toFixed(2)}
-              </p>
+              <p className="text-xl font-bold">${expense.amount.toFixed(2)}</p>
               <StatusBadge status={expense.status} />
             </div>
-              <p className="text-xs text-muted-foreground italic border-l-2 pl-2">
+            <p className="text-xs text-muted-foreground italic border-l-2 pl-2">
               <strong>AI Reason:</strong> {expense.reason}
             </p>
             <Button className="w-full">Review Expense</Button>
