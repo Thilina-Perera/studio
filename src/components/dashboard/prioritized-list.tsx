@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/card';
 import { AlertTriangle, TrendingUp } from 'lucide-react';
 import { StatusBadge } from './status-badge';
+import { Button } from '../ui/button';
 
 export async function PrioritizedList() {
   const expensesToPrioritize = mockExpenses
@@ -69,9 +70,10 @@ export async function PrioritizedList() {
                 </p>
                 <StatusBadge status={expense.status} />
               </div>
-              <p className="text-xs text-muted-foreground italic border-l-2 pl-2">
+               <p className="text-xs text-muted-foreground italic border-l-2 pl-2">
                 <strong>AI Reason:</strong> {expense.reason}
               </p>
+              <Button className="w-full">Review Expense</Button>
             </CardContent>
           </Card>
         ))}
