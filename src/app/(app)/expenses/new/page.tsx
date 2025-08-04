@@ -81,10 +81,10 @@ function NewExpensePageSkeleton() {
 }
 
 export default function NewExpensePage() {
-  const { user, role } = useUser();
+  const { user, role, loading: userLoading } = useUser();
   const { toast } = useToast();
   const router = useRouter();
-  const { clubs, loading } = useFirebase();
+  const { clubs, loading: firebaseLoading } = useFirebase();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -96,7 +96,7 @@ export default function NewExpensePage() {
     },
   });
 
-  if (loading || !user || !role) {
+  if (userLoading || firebaseLoading || !user || !role) {
     return <NewExpensePageSkeleton />;
   }
     
@@ -108,7 +108,12 @@ export default function NewExpensePage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
         if (!user) {
-            throw new Error("User not authenticated");
+            toast({
+                variant: "destructive",
+                title: "Not Authenticated",
+                description: "You must be logged in to submit an expense.",
+            })
+            return;
         }
         const newExpense: Omit<Expense, 'id'> = {
             clubId: values.clubId,
