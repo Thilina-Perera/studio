@@ -8,6 +8,7 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { useUser } from '@/hooks/use-user';
+import { useFirebase } from '@/hooks/use-firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -15,17 +16,31 @@ import { Skeleton } from '@/components/ui/skeleton';
 function AppLayoutSkeleton() {
     return (
         <div className="flex min-h-screen">
-            <div className="hidden md:block">
+            <div className="hidden md:block border-r">
                 <div className="w-64 h-full p-4 space-y-4">
-                    <Skeleton className="h-10 w-3/4" />
-                    <Skeleton className="h-8 w-full" />
-                    <Skeleton className="h-8 w-full" />
-                    <Skeleton className="h-8 w-full" />
+                    <div className="flex items-center gap-2">
+                        <Skeleton className="h-6 w-6" />
+                        <Skeleton className="h-5 w-32" />
+                    </div>
+                    <div className="space-y-2 pt-4">
+                        <Skeleton className="h-9 w-full" />
+                        <Skeleton className="h-9 w-full" />
+                        <Skeleton className="h-9 w-full" />
+                    </div>
                 </div>
             </div>
-            <div className="flex-1 p-8">
-                <Skeleton className="h-12 w-full mb-8" />
-                <Skeleton className="h-96 w-full" />
+            <div className="flex-1">
+                 <header className="flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+                    <div className="md:hidden">
+                        <Skeleton className="h-8 w-8" />
+                    </div>
+                    <div className="w-full flex-1" />
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                </header>
+                <main className="p-8">
+                    <Skeleton className="h-8 w-1/3 mb-8" />
+                    <Skeleton className="h-96 w-full" />
+                </main>
             </div>
         </div>
     )
@@ -33,17 +48,29 @@ function AppLayoutSkeleton() {
 
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useUser();
+  const { user, loading: userLoading } = useUser();
+  const { loading: firebaseLoading } = useFirebase();
   const router = useRouter();
 
+  const isLoading = userLoading || firebaseLoading;
+
   useEffect(() => {
-    if (!loading && !user) {
+    // If not loading and there's no user, redirect to login.
+    // This runs after the initial loading phase.
+    if (!userLoading && !user) {
       router.push('/login');
     }
-  }, [user, loading, router]);
+  }, [user, userLoading, router]);
   
-  if (!user) {
+  // Show skeleton while loading user auth state OR firebase data
+  if (isLoading) {
     return <AppLayoutSkeleton />;
+  }
+
+  // If we have finished loading but there is still no user,
+  // we are in the process of redirecting, so don't render the layout.
+  if (!user) {
+    return null;
   }
 
   return (
