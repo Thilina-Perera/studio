@@ -1,7 +1,8 @@
 import { Suspense } from 'react';
 import { PrioritizedList } from './prioritized-list';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '../ui/skeleton';
+import { AlertTriangle } from 'lucide-react';
 
 function PrioritizedListSkeleton() {
   return (
@@ -29,16 +30,32 @@ function PrioritizedListSkeleton() {
   );
 }
 
-export function AiExpensePrioritization() {
-  return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-semibold tracking-tight">
-        AI Priority Queue
-      </h2>
-      <Suspense fallback={<PrioritizedListSkeleton />}>
-        {/* @ts-expect-error Server Component */}
-        <PrioritizedList />
-      </Suspense>
-    </div>
-  );
+export async function AiExpensePrioritization() {
+   try {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-2xl font-semibold tracking-tight">
+          AI Priority Queue
+        </h2>
+        <Suspense fallback={<PrioritizedListSkeleton />}>
+          <PrioritizedList />
+        </Suspense>
+      </div>
+    );
+   } catch (error) {
+     console.error('AI Prioritization Error:', error);
+    return (
+      <Card className="border-destructive bg-destructive/10">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-destructive">
+            <AlertTriangle className="h-5 w-5" />
+            Error
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Could not load AI-prioritized expenses.</p>
+        </CardContent>
+      </Card>
+    );
+   }
 }
