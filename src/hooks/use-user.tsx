@@ -22,17 +22,6 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-
-// Helper to get/set the role from localStorage for persistence across reloads
-const getInitialRole = (): UserRole => {
-    if (typeof window !== 'undefined') {
-        const storedRole = localStorage.getItem('userRole') as UserRole;
-        return roles.includes(storedRole) ? storedRole : 'admin';
-    }
-    return 'admin';
-};
-
-
 export function UserProvider({ children }: { children: ReactNode }) {
     const [firebaseUser, setFirebaseUser] = useState<FirebaseAuthUser | null>(null);
     const [user, setUser] = useState<AppUser | null>(null);
@@ -41,18 +30,18 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const router = useRouter();
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        const unsubscribe = onAuthStateChanged(auth, async (authUserData) => {
             setLoading(true);
-            if (user) {
-                setFirebaseUser(user);
-                // Fetch user profile from Firestore
-                const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (authUserData) {
+                setFirebaseUser(authUserData);
+                const userDoc = await getDoc(doc(db, "users", authUserData.uid));
+                
                 if (userDoc.exists()) {
                     const userData = userDoc.data() as AppUser;
                     setUser(userData);
                     setRole(userData.role);
                 } else {
-                    // This case might happen if a user is created in Auth but not in Firestore
+                    // This can happen if the user doc creation fails after auth creation
                     setUser(null);
                     setRole(null);
                 }

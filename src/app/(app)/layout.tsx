@@ -57,22 +57,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // If not loading and there's no user, redirect to login.
     // This runs after the initial loading phase.
-    if (!userLoading && !user) {
+    if (!isLoading && !user) {
       router.push('/login');
     }
-  }, [user, userLoading, router]);
+  }, [user, isLoading, router]);
   
   // Show skeleton while loading user auth state OR firebase data
-  if (isLoading) {
+  // And most importantly, ensure we have a user object before rendering children
+  if (isLoading || !user) {
     return <AppLayoutSkeleton />;
   }
-
-  // If we have finished loading but there is still no user,
-  // we are in the process of redirecting, so don't render the layout.
-  if (!user) {
-    return null;
-  }
-
+  
   return (
     <SidebarProvider>
       <Sidebar>
