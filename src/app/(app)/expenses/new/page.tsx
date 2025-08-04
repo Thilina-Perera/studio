@@ -60,7 +60,7 @@ export default function NewExpensePage() {
     defaultValues: {
       clubId: '',
       description: '',
-      amount: undefined,
+      amount: '' as any, // Initialize as empty string to be a controlled component
       receipt: undefined,
     },
   });
