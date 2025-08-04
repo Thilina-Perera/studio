@@ -18,8 +18,6 @@ import {
 import { collection, doc, getDoc, onSnapshot, QuerySnapshot, DocumentData } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 
-const roles: UserRole[] = ['admin', 'representative', 'student'];
-
 interface UserContextType {
   user: AppUser | null;
   firebaseUser: FirebaseAuthUser | null;
@@ -28,8 +26,6 @@ interface UserContextType {
   expenses: Expense[];
   loading: boolean;
   logout: () => void;
-  toggleRole: () => void;
-  getNextRole: () => UserRole | null;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -58,18 +54,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
         setLoading(true);
         if (authUserData) {
           setFirebaseUser(authUserData);
-
-          const userDocRef = doc(db, 'users', authUserData.uid);
-          const userDoc = await getDoc(userDocRef);
-
-          if (userDoc.exists()) {
-            const userData = userDoc.data() as AppUser;
-            setUser(userData);
-            setRole(userData.role);
-          } else {
-             setUser(null);
-             setRole(null);
-          }
         } else {
           // No user logged in, reset all state
           setFirebaseUser(null);
@@ -92,6 +76,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     const clubsCollection = collection(db, 'clubs');
     const expensesCollection = collection(db, 'expenses');
+    const userDocRef = doc(db, 'users', firebaseUser.uid);
 
     const unsubscribeClubs = onSnapshot(
       clubsCollection,
@@ -101,6 +86,28 @@ export function UserProvider({ children }: { children: ReactNode }) {
           ...doc.data(),
         })) as Club[];
         setClubs(clubsData);
+        
+        // After clubs are loaded, determine the role
+        getDoc(userDocRef).then(userDoc => {
+            if (userDoc.exists()) {
+                const userData = userDoc.data() as AppUser;
+                setUser(userData);
+
+                if (userData.role === 'admin') {
+                    setRole('admin');
+                } else {
+                    const isRep = clubsData.some(club => club.representativeId === firebaseUser.uid);
+                    if (isRep) {
+                        setRole('representative');
+                    } else {
+                        setRole('student');
+                    }
+                }
+            } else {
+                setUser(null);
+                setRole(null);
+            }
+        });
       },
       (error) => {
         console.error('Error fetching clubs:', error);
@@ -129,22 +136,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
     };
   }, [firebaseUser]);
   
-  const toggleRole = useCallback(async () => {
-    if (!user) return;
-    const currentIndex = roles.indexOf(user.role);
-    const nextIndex = (currentIndex + 1) % roles.length;
-    const newRole = roles[nextIndex];
-    setUser({ ...user, role: newRole });
-    setRole(newRole);
-  }, [user]);
-
-  const getNextRole = () => {
-    if (!role) return null;
-    const currentIndex = roles.indexOf(role);
-    const nextIndex = (currentIndex + 1) % roles.length;
-    return roles[nextIndex];
-  };
-
   const value = {
     user,
     firebaseUser,
@@ -153,8 +144,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
     expenses,
     loading,
     logout: handleLogout,
-    toggleRole,
-    getNextRole,
   };
 
   return (

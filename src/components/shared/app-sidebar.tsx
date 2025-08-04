@@ -11,7 +11,7 @@ import {
 } from '../ui/sidebar';
 import { Logo } from '../logo';
 import { useUser } from '@/hooks/use-user';
-import { LayoutDashboard, Users, CreditCard, LogOut, Repeat } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 
@@ -32,7 +32,7 @@ const studentNav = [
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { role, toggleRole, getNextRole, logout } = useUser();
+  const { role, logout } = useUser();
   
   let navItems;
   switch (role) {
@@ -48,8 +48,6 @@ export function AppSidebar() {
     default:
         navItems = [];
   }
-
-  const nextRole = getNextRole();
 
   return (
     <>
@@ -77,12 +75,6 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarSeparator />
         <div className="p-2 space-y-2">
-            {nextRole && (
-              <Button variant="outline" className="w-full" onClick={toggleRole}>
-                  <Repeat className="mr-2 h-4 w-4" />
-                  Switch to {nextRole.charAt(0).toUpperCase() + nextRole.slice(1)}
-              </Button>
-            )}
             <Button variant="ghost" className="w-full justify-start" onClick={logout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Log Out
