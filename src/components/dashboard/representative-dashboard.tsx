@@ -107,7 +107,7 @@ export function RepresentativeDashboard() {
             <CardContent>
                 <div className="text-2xl font-bold">{userClubs.length}</div>
                  <p className="text-xs text-muted-foreground truncate">
-                   {userClubs.map(c => c.name).join(', ')}
+                   {userClubs.length > 0 ? userClubs.map(c => c.name).join(', ') : 'No clubs assigned'}
                  </p>
             </CardContent>
         </Card>
