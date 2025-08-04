@@ -6,6 +6,7 @@ import { AlertTriangle, Sparkles } from 'lucide-react';
 import type { Club, Expense } from '@/lib/types';
 import { useAiPrioritization } from '@/hooks/use-ai-prioritization';
 import { Button } from '../ui/button';
+import Link from 'next/link';
 
 function PrioritizedListSkeleton() {
   return (
@@ -67,8 +68,16 @@ export function AiExpensePrioritization({ expenses, clubs }: AiExpensePrioritiza
             </CardTitle>
             </CardHeader>
             <CardContent>
-            <p className="text-sm">Could not load AI-prioritized expenses: {error}</p>
-            {error.includes("429") && <p className="text-xs mt-2 text-muted-foreground">You have exceeded your API quota. Please check your Google AI plan and billing details, or try again later.</p>}
+            <p className="text-sm">Could not load AI-prioritized expenses.</p>
+            <p className="text-xs mt-2 text-muted-foreground">{error}</p>
+            {error.includes("quota") && 
+                <p className="text-xs mt-2 text-muted-foreground">
+                    For more information, see the{' '}
+                    <Link href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" className="underline">
+                        Google AI documentation on rate limits
+                    </Link>.
+                </p>
+            }
             </CardContent>
         </Card>
       )}
