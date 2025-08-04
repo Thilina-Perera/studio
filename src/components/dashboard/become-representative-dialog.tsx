@@ -62,15 +62,6 @@ export function BecomeRepresentativeDialog({ user, clubs }: BecomeRepresentative
       });
       return;
     }
-    
-    // Optional: Add a check to see if the club already has a representative
-    if (clubToUpdate.representativeId && clubToUpdate.representativeId !== '') {
-        form.setError('clubId', {
-            type: 'manual',
-            message: 'This club already has an assigned representative.',
-        });
-        return;
-    }
 
     try {
       // Use the actual club ID (with correct casing) from the found club object
