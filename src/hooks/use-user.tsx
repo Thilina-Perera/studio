@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, createContext, useContext, ReactNode } from 'react';
@@ -41,6 +42,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            setLoading(true);
             if (user) {
                 setFirebaseUser(user);
                 // Fetch user profile from Firestore

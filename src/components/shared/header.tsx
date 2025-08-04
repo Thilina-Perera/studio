@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -13,10 +14,24 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUser } from '@/hooks/use-user';
 import { SidebarTrigger } from '../ui/sidebar';
 import { LogOut } from 'lucide-react';
+import { Skeleton } from '../ui/skeleton';
 
 export function AppHeader() {
-  const { user, logout } = useUser();
-  const initials = user?.name.split(' ').map(n => n[0]).join('') || 'U';
+  const { user, logout, loading } = useUser();
+  
+  if (loading || !user) {
+    return (
+       <header className="flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+         <div className="md:hidden">
+            <SidebarTrigger />
+         </div>
+         <div className="w-full flex-1" />
+         <Skeleton className="h-10 w-10 rounded-full" />
+       </header>
+    )
+  }
+
+  const initials = user.name.split(' ').map(n => n[0]).join('') || 'U';
 
   return (
     <header className="flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -30,14 +45,14 @@ export function AppHeader() {
         <DropdownMenuTrigger asChild>
           <Button variant="secondary" size="icon" className="rounded-full">
             <Avatar>
-              <AvatarImage src={user?.avatarUrl} alt={user?.name} />
+              <AvatarImage src={user.avatarUrl} alt={user.name} />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
             <span className="sr-only">Toggle user menu</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>{user?.name}</DropdownMenuLabel>
+          <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem>Settings</DropdownMenuItem>
           <DropdownMenuItem>Support</DropdownMenuItem>
