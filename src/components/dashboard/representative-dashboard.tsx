@@ -18,7 +18,7 @@ export function RepresentativeDashboard() {
   const { user } = useUser();
   const { clubs, expenses } = useFirebase();
   
-  // Data is guaranteed to be loaded by AppLayout
+  // Data is guaranteed to be loaded by AppLayout, so we can safely use it here.
   const userClubs = clubs.filter(
     (club) => club.representativeId === user!.id
   );

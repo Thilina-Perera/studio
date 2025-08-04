@@ -18,13 +18,15 @@ export function StudentDashboard() {
   const { user } = useUser();
   const { expenses } = useFirebase();
 
-  // Data is guaranteed to be loaded by AppLayout
+  // Data is guaranteed to be loaded by AppLayout, so we can safely use it here.
   const userExpenses = expenses.filter(
     (expense) => expense.submitterId === user!.id
   );
   
   const totalExpenses = userExpenses.length;
-  const pendingAmount = userExpenses.filter(e => e.status === 'Pending' || e.status === 'Under Review').reduce((sum, e) => sum + e.amount, 0);
+  const pendingAmount = userExpenses
+    .filter((e) => e.status === 'Pending' || e.status === 'Under Review')
+    .reduce((sum, e) => sum + e.amount, 0);
 
   return (
     <div className="space-y-8">

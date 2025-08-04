@@ -8,7 +8,6 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { useUser } from '@/hooks/use-user';
-import { useFirebase } from '@/hooks/use-firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -48,27 +47,19 @@ function AppLayoutSkeleton() {
 
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading: userLoading } = useUser();
-  const { loading: firebaseLoading } = useFirebase();
+  const { user, loading } = useUser();
   const router = useRouter();
-
-  const isLoading = userLoading || firebaseLoading;
 
   useEffect(() => {
     // If not loading and there's no user, redirect to login.
-    if (!userLoading && !user) {
+    if (!loading && !user) {
       router.push('/login');
     }
-  }, [user, userLoading, router]);
+  }, [user, loading, router]);
   
-  // Show skeleton while loading user auth state OR firebase data
-  if (isLoading) {
-    return <AppLayoutSkeleton />;
-  }
-
-  // After loading, if there's still no user, don't render children
-  // The useEffect above will handle the redirect.
-  if (!user) {
+  // Show skeleton while loading user auth state OR if there is no user yet
+  // This is the gatekeeper for all authenticated routes
+  if (loading || !user) {
     return <AppLayoutSkeleton />;
   }
   

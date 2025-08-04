@@ -34,14 +34,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
             setLoading(true);
             if (authUserData) {
                 setFirebaseUser(authUserData);
-                const userDoc = await getDoc(doc(db, "users", authUserData.uid));
+                const userDocRef = doc(db, "users", authUserData.uid);
+                const userDoc = await getDoc(userDocRef);
                 
                 if (userDoc.exists()) {
                     const userData = userDoc.data() as AppUser;
                     setUser(userData);
                     setRole(userData.role);
                 } else {
-                    // This can happen if the user doc creation fails after auth creation
                     setUser(null);
                     setRole(null);
                 }
@@ -59,6 +59,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     const logout = async () => {
         await signOut(auth);
+        setUser(null);
+        setFirebaseUser(null);
+        setRole(null);
         router.push('/');
     };
     

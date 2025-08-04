@@ -17,9 +17,9 @@ import { LogOut } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 
 export function AppHeader() {
-  const { user, logout, loading } = useUser();
+  const { user, logout } = useUser();
   
-  if (loading || !user) {
+  if (!user) {
     return (
        <header className="flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
          <div className="md:hidden">
