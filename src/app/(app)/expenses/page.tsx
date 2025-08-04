@@ -48,7 +48,7 @@ export default function ExpensesPage() {
           </Button>
         </CardHeader>
         <CardContent>
-          <ExpenseTable expenses={userExpenses} />
+          <ExpenseTable expenses={userExpenses} clubs={clubs} />
         </CardContent>
       </Card>
     </div>

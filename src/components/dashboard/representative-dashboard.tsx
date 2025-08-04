@@ -83,7 +83,7 @@ export function RepresentativeDashboard() {
             </Button>
         </CardHeader>
         <CardContent>
-          <ExpenseTable expenses={userExpenses.slice(0, 5)} />
+          <ExpenseTable expenses={userExpenses.slice(0, 5)} clubs={clubs} />
         </CardContent>
       </Card>
     </div>

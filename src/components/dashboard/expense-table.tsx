@@ -16,17 +16,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
-import type { Expense } from '@/lib/types';
-import { useUser } from '@/hooks/use-user';
+import type { Club, Expense } from '@/lib/types';
 import { StatusBadge } from './status-badge';
 import { format } from 'date-fns';
 
 interface ExpenseTableProps {
   expenses: Expense[];
+  clubs: Club[];
 }
 
-export function ExpenseTable({ expenses }: ExpenseTableProps) {
-  const { clubs } = useUser();
+export function ExpenseTable({ expenses, clubs }: ExpenseTableProps) {
   const getClubName = (clubId: string) => {
     return clubs.find((c) => c.id === clubId)?.name || 'Unknown Club';
   };

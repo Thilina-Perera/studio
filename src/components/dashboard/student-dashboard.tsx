@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { Button } from '../ui/button';
 
 export function StudentDashboard() {
-  const { user, expenses } = useUser();
+  const { user, expenses, clubs } = useUser();
 
   // Data is guaranteed to be loaded by AppLayout, so we can safely use it here.
   const userExpenses = expenses.filter(
@@ -69,7 +69,7 @@ export function StudentDashboard() {
             </Button>
         </CardHeader>
         <CardContent>
-          <ExpenseTable expenses={userExpenses.slice(0, 5)} />
+          <ExpenseTable expenses={userExpenses.slice(0, 5)} clubs={clubs} />
         </CardContent>
       </Card>
     </div>

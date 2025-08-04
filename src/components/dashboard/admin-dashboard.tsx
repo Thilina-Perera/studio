@@ -105,7 +105,7 @@ export function AdminDashboard({ children }: { children: React.ReactNode }) {
                 <Skeleton className="h-12 w-full" />
               </div>
           ) : (
-            <ExpenseTable expenses={filteredExpenses} />
+            <ExpenseTable expenses={filteredExpenses} clubs={clubs} />
           )}
         </CardContent>
       </Card>
