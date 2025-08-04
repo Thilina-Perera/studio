@@ -3,11 +3,10 @@
 import { Button } from '@/components/ui/button';
 import {
   Card,
-  CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
+  CardDescription
 } from '@/components/ui/card';
 import { useUser } from '@/hooks/use-user';
 import { useFirebase } from '@/hooks/use-firebase';
