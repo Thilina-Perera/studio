@@ -36,6 +36,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Expense } from '@/lib/types';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const formSchema = z.object({
   clubId: z.string().min(1, 'Please select a club.'),
@@ -48,9 +49,41 @@ const formSchema = z.object({
   receipt: z.any().optional(),
 });
 
+function NewExpensePageSkeleton() {
+  return (
+    <Card className="max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle>Submit New Expense</CardTitle>
+        <CardDescription>
+          Fill out the form below to submit a new expense for reimbursement.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-8">
+        <div className="space-y-2">
+            <Skeleton className="h-4 w-1/4" />
+            <Skeleton className="h-10 w-full" />
+        </div>
+        <div className="space-y-2">
+            <Skeleton className="h-4 w-1/4" />
+            <Skeleton className="h-20 w-full" />
+        </div>
+         <div className="space-y-2">
+            <Skeleton className="h-4 w-1/4" />
+            <Skeleton className="h-10 w-full" />
+        </div>
+         <div className="space-y-2">
+            <Skeleton className="h-4 w-1/4" />
+            <Skeleton className="h-10 w-full" />
+        </div>
+        <Skeleton className="h-10 w-32" />
+      </CardContent>
+    </Card>
+  )
+}
+
 
 export default function NewExpensePage() {
-  const { user, role, clubs } = useUser();
+  const { user, role, clubs, loading } = useUser();
   const { toast } = useToast();
   const router = useRouter();
   
@@ -106,6 +139,10 @@ export default function NewExpensePage() {
             description: "Could not submit your expense. Please try again.",
         })
     }
+  }
+
+  if (loading) {
+    return <NewExpensePageSkeleton />
   }
 
   return (
