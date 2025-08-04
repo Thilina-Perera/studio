@@ -2,9 +2,10 @@
 import { PrioritizedList } from './prioritized-list';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '../ui/skeleton';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Sparkles } from 'lucide-react';
 import type { Club, Expense } from '@/lib/types';
 import { useAiPrioritization } from '@/hooks/use-ai-prioritization';
+import { Button } from '../ui/button';
 
 function PrioritizedListSkeleton() {
   return (
@@ -38,13 +39,24 @@ interface AiExpensePrioritizationProps {
 }
 
 export function AiExpensePrioritization({ expenses, clubs }: AiExpensePrioritizationProps) {
-  const { prioritizedExpenses, loading, error } = useAiPrioritization({ expenses });
+  const { prioritizedExpenses, loading, error, runPrioritization } = useAiPrioritization({ expenses });
+
+  const handleRunPrioritization = () => {
+    runPrioritization();
+  };
+
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-semibold tracking-tight">
-        AI Priority Queue
-      </h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-semibold tracking-tight">
+          AI Priority Queue
+        </h2>
+        <Button onClick={handleRunPrioritization} disabled={loading}>
+          {loading ? 'Prioritizing...' : <><Sparkles className="mr-2 h-4 w-4" /> Prioritize with AI</>}
+        </Button>
+      </div>
+
       {loading && <PrioritizedListSkeleton />}
       {error && (
          <Card className="border-destructive bg-destructive/10">
@@ -55,7 +67,8 @@ export function AiExpensePrioritization({ expenses, clubs }: AiExpensePrioritiza
             </CardTitle>
             </CardHeader>
             <CardContent>
-            <p>Could not load AI-prioritized expenses: {error}</p>
+            <p className="text-sm">Could not load AI-prioritized expenses: {error}</p>
+            {error.includes("429") && <p className="text-xs mt-2 text-muted-foreground">You have exceeded your API quota. Please check your Google AI plan and billing details, or try again later.</p>}
             </CardContent>
         </Card>
       )}
