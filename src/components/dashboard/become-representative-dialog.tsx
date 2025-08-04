@@ -22,7 +22,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -30,7 +36,7 @@ import type { Club, User } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
-  clubId: z.string().min(1, 'Please enter a Club ID.'),
+  clubId: z.string().min(1, 'Please select a club.'),
 });
 
 interface BecomeRepresentativeDialogProps {
@@ -52,19 +58,19 @@ export function BecomeRepresentativeDialog({ user, clubs }: BecomeRepresentative
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const clubToUpdate = clubs.find(
-      (club) => club.id.toLowerCase() === values.clubId.toLowerCase()
+      (club) => club.id === values.clubId
     );
 
     if (!clubToUpdate) {
-      form.setError('clubId', {
-        type: 'manual',
-        message: 'No club found with that ID. Please check and try again.',
-      });
+        toast({
+            variant: 'destructive',
+            title: 'An Error Occurred',
+            description: 'The selected club could not be found. Please try again.',
+        });
       return;
     }
 
     try {
-      // Use the actual club ID (with correct casing) from the found club object
       const clubRef = doc(db, 'clubs', clubToUpdate.id);
       await updateDoc(clubRef, {
         representativeId: user.id,
@@ -96,28 +102,42 @@ export function BecomeRepresentativeDialog({ user, clubs }: BecomeRepresentative
         <DialogHeader>
           <DialogTitle>Become a Club Representative</DialogTitle>
           <DialogDescription>
-            Enter the unique ID for the club you want to represent. This will
+            Select the club you want to represent from the list below. This will
             grant you access to the representative dashboard.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <FormField
+             <FormField
               control={form.control}
               name="clubId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Club ID</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter the Club ID" {...field} />
-                  </FormControl>
+                  <FormLabel>Club</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a club to represent" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {clubs.map((club) => (
+                        <SelectItem key={club.id} value={club.id}>
+                          {club.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <DialogFooter>
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Verifying...' : 'Submit'}
+                {form.formState.isSubmitting ? 'Submitting...' : 'Submit'}
               </Button>
             </DialogFooter>
           </form>
