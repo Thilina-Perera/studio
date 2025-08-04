@@ -12,6 +12,7 @@ import { ExpenseTable } from './expense-table';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import type { Club, Expense } from '@/lib/types';
+import { BecomeRepresentativeDialog } from './become-representative-dialog';
 
 interface StudentDashboardProps {
   allClubs: Club[];
@@ -19,7 +20,7 @@ interface StudentDashboardProps {
 }
 
 export function StudentDashboard({ allClubs, allExpenses }: StudentDashboardProps) {
-  const { user } = useUser();
+  const { user, role } = useUser();
 
   const userExpenses = allExpenses.filter(
     (expense) => expense.submitterId === user!.id
@@ -29,17 +30,23 @@ export function StudentDashboard({ allClubs, allExpenses }: StudentDashboardProp
   const pendingAmount = userExpenses
     .filter((e) => e.status === 'Pending' || e.status === 'Under Review')
     .reduce((sum, e) => sum + e.amount, 0);
+    
+  const isStudent = role === 'student';
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">
-          Welcome, {user!.name}
-        </h1>
-        <p className="text-muted-foreground">
-          Here's an overview of your submitted expenses.
-        </p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Welcome, {user!.name}
+          </h1>
+          <p className="text-muted-foreground">
+            Here's an overview of your submitted expenses.
+          </p>
+        </div>
+        {isStudent && <BecomeRepresentativeDialog clubs={allClubs} user={user!} />}
       </div>
+
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
