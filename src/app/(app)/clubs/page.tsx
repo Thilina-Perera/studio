@@ -1,3 +1,4 @@
+
 'use client';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,13 +10,13 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useUser } from '@/hooks/use-user';
-import { useMockData } from '@/hooks/use-mock-data.tsx';
+import { useFirebase } from '@/hooks/use-firebase';
 import Link from 'next/link';
 import { PlusCircle } from 'lucide-react';
 
 export default function ClubsPage() {
   const { user } = useUser();
-  const { clubs } = useMockData();
+  const { clubs } = useFirebase();
   const userClubs = clubs.filter(
     (club) => club.representativeId === user?.id
   );

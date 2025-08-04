@@ -1,3 +1,4 @@
+
 'use client';
 import {
   Card,
@@ -7,7 +8,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useUser } from '@/hooks/use-user';
-import { useMockData } from '@/hooks/use-mock-data.tsx';
+import { useFirebase } from '@/hooks/use-firebase';
 import { DollarSign, FileText, Users } from 'lucide-react';
 import { ExpenseTable } from './expense-table';
 import Link from 'next/link';
@@ -15,7 +16,7 @@ import { Button } from '../ui/button';
 
 export function RepresentativeDashboard() {
   const { user } = useUser();
-  const { clubs, expenses } = useMockData();
+  const { clubs, expenses } = useFirebase();
   const userClubs = clubs.filter(
     (club) => club.representativeId === user?.id
   );

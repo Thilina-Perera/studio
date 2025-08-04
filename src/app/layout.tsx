@@ -1,9 +1,10 @@
+
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
-import { MockDataProvider } from '@/hooks/use-mock-data.tsx';
+import { FirebaseProvider } from '@/hooks/use-firebase';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -20,9 +21,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn('min-h-screen bg-background font-sans antialiased', inter.variable)}>
-        <MockDataProvider>
+        <FirebaseProvider>
             {children}
-        </MockDataProvider>
+        </FirebaseProvider>
         <Toaster />
       </body>
     </html>

@@ -1,11 +1,9 @@
-// This is a mock user hook for development purposes.
-// In a real application, this would be replaced with a proper authentication hook
-// that fetches user data from a service like Firebase Authentication.
+
 'use client'
 
 import { useState, useEffect, useCallback } from 'react';
 import type { User, UserRole } from '@/lib/types';
-import { useMockData } from './use-mock-data.tsx';
+import { useFirebase } from './use-firebase';
 
 const roles: UserRole[] = ['admin', 'representative', 'student'];
 
@@ -21,7 +19,7 @@ const getInitialRole = (): UserRole => {
 
 export function useUser() {
   const [role, setRole] = useState<UserRole>('admin');
-  const { users } = useMockData();
+  const { users } = useFirebase();
 
   const adminUser = users.find(u => u.role === 'admin')!;
   const repUser = users.find(u => u.role === 'representative')!;

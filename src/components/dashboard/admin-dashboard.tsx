@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useEffect } from 'react';
 import {
@@ -7,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useMockData } from '@/hooks/use-mock-data.tsx';
+import { useFirebase } from '@/hooks/use-firebase';
 import { ExpenseTable } from './expense-table';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -15,16 +16,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { DateRangePicker } from '../ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import type { Expense } from '@/lib/types';
+import { Skeleton } from '../ui/skeleton';
 
 export function AdminDashboard({ children }: { children: React.ReactNode }) {
-  const { expenses: allExpenses, clubs } = useMockData();
+  const { expenses: allExpenses, clubs, loading } = useFirebase();
   const [descriptionFilter, setDescriptionFilter] = useState('');
   const [clubFilter, setClubFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState<DateRange | undefined>();
-  const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>(allExpenses);
+  const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>([]);
 
   useEffect(() => {
-    handleFilter();
+    setFilteredExpenses(allExpenses);
   }, [allExpenses]);
 
 
@@ -96,7 +98,15 @@ export function AdminDashboard({ children }: { children: React.ReactNode }) {
             </div>
             <Button onClick={handleFilter}>Filter</Button>
           </div>
-          <ExpenseTable expenses={filteredExpenses} />
+          {loading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+          ) : (
+            <ExpenseTable expenses={filteredExpenses} />
+          )}
         </CardContent>
       </Card>
     </div>

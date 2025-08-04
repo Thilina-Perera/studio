@@ -34,8 +34,10 @@ import { useUser } from '@/hooks/use-user';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useMockData } from '@/hooks/use-mock-data.tsx';
+import { useFirebase } from '@/hooks/use-firebase';
 import type { Expense } from '@/lib/types';
+import { addDoc, collection } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 const formSchema = z.object({
   clubId: z.string().min(1, 'Please select a club.'),
@@ -72,7 +74,7 @@ function NewExpensePageSkeleton() {
                     <Skeleton className="h-4 w-1/4" />
                     <Skeleton className="h-10 w-full" />
                 </div>
-                <Skeleton className="h-10 w-32" />
+                <Button disabled>Submit Expense</Button>
             </CardContent>
         </Card>
     )
@@ -82,7 +84,7 @@ export default function NewExpensePage() {
   const { user, role } = useUser();
   const { toast } = useToast();
   const router = useRouter();
-  const { addExpense, clubs } = useMockData();
+  const { clubs, loading } = useFirebase();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -94,7 +96,7 @@ export default function NewExpensePage() {
     },
   });
 
-  if (!user || !role) {
+  if (loading || !user || !role) {
     return <NewExpensePageSkeleton />;
   }
     
@@ -103,24 +105,36 @@ export default function NewExpensePage() {
     ? clubs.filter((club) => club.representativeId === user?.id)
     : clubs;
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    const newExpense: Expense = {
-        id: `exp-${Date.now()}`,
-        clubId: values.clubId,
-        description: values.description,
-        amount: values.amount,
-        status: 'Pending',
-        submittedDate: new Date().toISOString(),
-        submitterId: user!.id,
-    };
-
-    addExpense(newExpense);
-    
-    toast({
-        title: "Expense Submitted!",
-        description: "Your expense has been successfully submitted for review.",
-    })
-    router.push('/dashboard');
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+        if (!user) {
+            throw new Error("User not authenticated");
+        }
+        const newExpense: Omit<Expense, 'id'> = {
+            clubId: values.clubId,
+            description: values.description,
+            amount: values.amount,
+            status: 'Pending',
+            submittedDate: new Date().toISOString(),
+            submitterId: user.id,
+        };
+        await addDoc(collection(db, 'expenses'), newExpense);
+        
+        toast({
+            title: "Expense Submitted!",
+            description: "Your expense has been successfully submitted for review.",
+        })
+        router.push('/dashboard');
+        // Ideally, we'd refetch the data or update the state locally
+        router.refresh();
+    } catch (error) {
+        console.error("Error submitting expense: ", error);
+        toast({
+            variant: "destructive",
+            title: "Submission Failed",
+            description: "Could not submit your expense. Please try again.",
+        })
+    }
   }
 
   return (
@@ -200,7 +214,7 @@ export default function NewExpensePage() {
                 <FormItem>
                   <FormLabel>Receipt</FormLabel>
                   <FormControl>
-                    <Input type="file" onChange={e => onChange(e.target.files)} {...rest} />
+                    <Input type="file" onChange={e => onChange(e.target.files?.[0])} {...rest} />
                   </FormControl>
                    <FormDescription>
                     Upload a clear image or PDF of the receipt.
@@ -209,7 +223,9 @@ export default function NewExpensePage() {
                 </FormItem>
               )}
             />
-            <Button type="submit">Submit Expense</Button>
+            <Button type="submit" disabled={form.formState.isSubmitting}>
+              {form.formState.isSubmitting ? "Submitting..." : "Submit Expense"}
+            </Button>
           </form>
         </Form>
       </CardContent>

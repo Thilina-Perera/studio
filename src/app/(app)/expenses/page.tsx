@@ -1,3 +1,4 @@
+
 'use client';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,12 +10,12 @@ import {
 } from '@/components/ui/card';
 import { ExpenseTable } from '@/components/dashboard/expense-table';
 import { useUser } from '@/hooks/use-user';
-import { useMockData } from '@/hooks/use-mock-data.tsx';
+import { useFirebase } from '@/hooks/use-firebase';
 import Link from 'next/link';
 
 export default function ExpensesPage() {
   const { user, role } = useUser();
-  const { clubs, expenses } = useMockData();
+  const { clubs, expenses } = useFirebase();
   
   const userExpenses = expenses.filter((expense) => {
     if (role === 'representative') {

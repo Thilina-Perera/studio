@@ -1,3 +1,4 @@
+
 import { prioritizeExpenses } from '@/ai/flows/prioritize-expenses';
 import type { PrioritizedExpense } from '@/lib/types';
 import {
@@ -10,19 +11,29 @@ import {
 import { TrendingUp } from 'lucide-react';
 import { StatusBadge } from './status-badge';
 import { Button } from '../ui/button';
-import { initialClubs, initialExpenses } from '@/lib/mock-data';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import type { Expense, Club } from '@/lib/types';
+
 
 export async function PrioritizedList() {
-  const expenses = initialExpenses;
-  const clubs = initialClubs;
+  const expenseQuery = query(collection(db, "expenses"), where("status", "in", ["Pending", "Under Review"]));
+  const clubsQuery = query(collection(db, "clubs"));
+
+  const [expenseSnapshot, clubsSnapshot] = await Promise.all([
+    getDocs(expenseQuery),
+    getDocs(clubsQuery)
+  ]);
   
-  const expensesToPrioritize = expenses
-    .filter((e) => e.status === 'Pending' || e.status === 'Under Review')
-    .map((e) => ({
+  const expenses = expenseSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Expense[];
+  const clubs = clubsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Club[];
+
+  const expensesToPrioritize = expenses.map((e) => ({
       expenseId: e.id,
       description: e.description,
       amount: e.amount,
-    }));
+  }));
+
 
   if (expensesToPrioritize.length === 0) {
     return (

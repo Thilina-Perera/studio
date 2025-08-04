@@ -1,3 +1,4 @@
+
 'use client';
 import {
   Table,
@@ -16,7 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
 import type { Expense } from '@/lib/types';
-import { useMockData } from '@/hooks/use-mock-data.tsx';
+import { useFirebase } from '@/hooks/use-firebase';
 import { StatusBadge } from './status-badge';
 import { format } from 'date-fns';
 
@@ -25,7 +26,7 @@ interface ExpenseTableProps {
 }
 
 export function ExpenseTable({ expenses }: ExpenseTableProps) {
-  const { clubs } = useMockData();
+  const { clubs } from useFirebase();
   const getClubName = (clubId: string) => {
     return clubs.find((c) => c.id === clubId)?.name || 'Unknown Club';
   };
