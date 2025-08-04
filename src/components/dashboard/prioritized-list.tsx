@@ -11,29 +11,21 @@ import {
 import { TrendingUp } from 'lucide-react';
 import { StatusBadge } from './status-badge';
 import { Button } from '../ui/button';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import type { Expense, Club } from '@/lib/types';
 
+interface PrioritizedListProps {
+    allExpenses: Expense[];
+    allClubs: Club[];
+}
 
-export async function PrioritizedList() {
-  const expenseQuery = query(collection(db, "expenses"), where("status", "in", ["Pending", "Under Review"]));
-  const clubsQuery = query(collection(db, "clubs"));
+export async function PrioritizedList({ allExpenses, allClubs }: PrioritizedListProps) {
+  const pendingExpenses = allExpenses.filter(e => ["Pending", "Under Review"].includes(e.status));
 
-  const [expenseSnapshot, clubsSnapshot] = await Promise.all([
-    getDocs(expenseQuery),
-    getDocs(clubsQuery)
-  ]);
-  
-  const expenses = expenseSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Expense[];
-  const clubs = clubsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Club[];
-
-  const expensesToPrioritize = expenses.map((e) => ({
+  const expensesToPrioritize = pendingExpenses.map((e) => ({
       expenseId: e.id,
       description: e.description,
       amount: e.amount,
   }));
-
 
   if (expensesToPrioritize.length === 0) {
     return (
@@ -47,7 +39,7 @@ export async function PrioritizedList() {
 
   const prioritizedExpenses: PrioritizedExpense[] = prioritizedResult
     .map((p) => {
-      const originalExpense = expenses.find((e) => e.id === p.expenseId);
+      const originalExpense = pendingExpenses.find((e) => e.id === p.expenseId);
       if (!originalExpense) return null;
       return {
         ...originalExpense,
@@ -60,7 +52,7 @@ export async function PrioritizedList() {
     .slice(0, 3); // Take top 3
 
   const getClubName = (clubId: string) => {
-    return clubs.find((c) => c.id === clubId)?.name || 'Unknown Club';
+    return allClubs.find((c) => c.id === clubId)?.name || 'Unknown Club';
   };
 
   return (

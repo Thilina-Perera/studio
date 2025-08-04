@@ -3,6 +3,7 @@ import { PrioritizedList } from './prioritized-list';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '../ui/skeleton';
 import { AlertTriangle } from 'lucide-react';
+import type { Club, Expense } from '@/lib/types';
 
 function PrioritizedListSkeleton() {
   return (
@@ -30,7 +31,12 @@ function PrioritizedListSkeleton() {
   );
 }
 
-export async function AiExpensePrioritization() {
+interface AiExpensePrioritizationProps {
+  expenses: Expense[];
+  clubs: Club[];
+}
+
+export async function AiExpensePrioritization({ expenses, clubs }: AiExpensePrioritizationProps) {
    try {
     return (
       <div className="space-y-4">
@@ -38,7 +44,7 @@ export async function AiExpensePrioritization() {
           AI Priority Queue
         </h2>
         <Suspense fallback={<PrioritizedListSkeleton />}>
-          <PrioritizedList />
+          <PrioritizedList allExpenses={expenses} allClubs={clubs} />
         </Suspense>
       </div>
     );
