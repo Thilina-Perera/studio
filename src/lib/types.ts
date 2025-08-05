@@ -43,3 +43,15 @@ export interface Event {
   clubId: string;
   date: string;
 }
+
+export type RepresentativeRequestStatus = 'pending' | 'approved' | 'rejected';
+
+export interface RepresentativeRequest {
+  id: string;
+  userId: string;
+  userName: string;
+  clubId: string;
+  clubName: string;
+  status: RepresentativeRequestStatus;
+  requestDate: string;
+}

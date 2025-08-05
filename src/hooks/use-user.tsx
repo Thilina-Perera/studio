@@ -8,7 +8,7 @@ import {
   useContext,
   ReactNode,
 } from 'react';
-import type { User as AppUser, UserRole, Club, Expense } from '@/lib/types';
+import type { User as AppUser, UserRole, Club, Expense, RepresentativeRequest } from '@/lib/types';
 import { auth, db } from '@/lib/firebase';
 import {
   onAuthStateChanged,
@@ -25,6 +25,7 @@ interface UserContextType {
   clubs: Club[];
   expenses: Expense[];
   users: AppUser[];
+  representativeRequests: RepresentativeRequest[];
   loading: boolean;
   logout: () => void;
 }
@@ -40,6 +41,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [clubs, setClubs] = useState<Club[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [users, setUsers] = useState<AppUser[]>([]);
+  const [representativeRequests, setRepresentativeRequests] = useState<RepresentativeRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -64,6 +66,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
           setClubs([]);
           setExpenses([]);
           setUsers([]);
+          setRepresentativeRequests([]);
           setLoading(false);
         }
       }
@@ -80,6 +83,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const clubsCollection = collection(db, 'clubs');
     const expensesCollection = collection(db, 'expenses');
     const usersCollection = collection(db, 'users');
+    const requestsCollection = collection(db, 'representativeRequests');
     const userDocRef = doc(db, 'users', firebaseUser.uid);
 
     const unsubscribeUsers = onSnapshot(
@@ -140,18 +144,34 @@ export function UserProvider({ children }: { children: ReactNode }) {
           ...doc.data(),
         })) as Expense[];
         setExpenses(expensesData);
-        setLoading(false); // Consider loading finished after all data is attempted
       },
       (error) => {
         console.error('Error fetching expenses:', error);
-        setLoading(false);
       }
     );
+    
+    const unsubscribeRequests = onSnapshot(
+      requestsCollection,
+      (snapshot: QuerySnapshot<DocumentData>) => {
+        const requestsData = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+        })) as RepresentativeRequest[];
+        setRepresentativeRequests(requestsData);
+        setLoading(false);
+      },
+      (error) => {
+          console.error('Error fetching requests:', error);
+          setLoading(false);
+      }
+    );
+
 
     return () => {
       unsubscribeClubs();
       unsubscribeExpenses();
       unsubscribeUsers();
+      unsubscribeRequests();
     };
   }, [firebaseUser]);
   
@@ -162,6 +182,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     clubs,
     expenses,
     users,
+    representativeRequests,
     loading,
     logout: handleLogout,
   };

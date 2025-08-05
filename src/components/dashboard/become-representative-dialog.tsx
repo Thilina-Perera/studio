@@ -30,9 +30,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { doc, updateDoc } from 'firebase/firestore';
+import { addDoc, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import type { Club, User } from '@/lib/types';
+import type { Club, User, RepresentativeRequest } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
@@ -57,38 +57,41 @@ export function BecomeRepresentativeDialog({ user, clubs }: BecomeRepresentative
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const clubToUpdate = clubs.find(
-      (club) => club.id === values.clubId
-    );
+    const selectedClub = clubs.find((club) => club.id === values.clubId);
 
-    if (!clubToUpdate) {
-        toast({
-            variant: 'destructive',
-            title: 'An Error Occurred',
-            description: 'The selected club could not be found. Please try again.',
-        });
+    if (!selectedClub) {
+      toast({
+        variant: 'destructive',
+        title: 'An Error Occurred',
+        description: 'The selected club could not be found. Please try again.',
+      });
       return;
     }
 
     try {
-      const clubRef = doc(db, 'clubs', clubToUpdate.id);
-      await updateDoc(clubRef, {
-        representativeId: user.id,
-      });
+      const newRequest: Omit<RepresentativeRequest, 'id'> = {
+        userId: user.id,
+        userName: user.name,
+        clubId: selectedClub.id,
+        clubName: selectedClub.name,
+        status: 'pending',
+        requestDate: new Date().toISOString(),
+      };
+      await addDoc(collection(db, 'representativeRequests'), newRequest);
 
       toast({
-        title: 'Success!',
-        description: `You are now the representative for ${clubToUpdate.name}.`,
+        title: 'Request Sent!',
+        description: `Your request to represent ${selectedClub.name} has been sent for admin approval.`,
       });
       setIsOpen(false);
-      // Refresh the page or data to reflect the role change
+      form.reset();
       router.refresh();
     } catch (error) {
-      console.error('Error updating club representative:', error);
+      console.error('Error submitting request:', error);
       toast({
         variant: 'destructive',
-        title: 'Update Failed',
-        description: 'Could not assign you as the representative. Please try again.',
+        title: 'Request Failed',
+        description: 'Could not submit your request. Please try again.',
       });
     }
   }
@@ -102,8 +105,7 @@ export function BecomeRepresentativeDialog({ user, clubs }: BecomeRepresentative
         <DialogHeader>
           <DialogTitle>Become a Club Representative</DialogTitle>
           <DialogDescription>
-            Select the club you want to represent from the list below. This will
-            grant you access to the representative dashboard.
+            Select a club to request representation. Your request will be sent to an administrator for approval.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -137,7 +139,7 @@ export function BecomeRepresentativeDialog({ user, clubs }: BecomeRepresentative
             />
             <DialogFooter>
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Submitting...' : 'Submit'}
+                {form.formState.isSubmitting ? 'Submitting...' : 'Submit Request'}
               </Button>
             </DialogFooter>
           </form>

@@ -11,12 +11,13 @@ import {
 } from '../ui/sidebar';
 import { Logo } from '../logo';
 import { useUser } from '@/hooks/use-user';
-import { LayoutDashboard, Users, CreditCard, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, LogOut, CheckSquare } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 
 const adminNav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/requests', label: 'Approvals', icon: CheckSquare },
 ];
 
 const repNav = [
