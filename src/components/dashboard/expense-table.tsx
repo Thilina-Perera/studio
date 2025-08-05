@@ -14,9 +14,10 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal } from 'lucide-react';
+import { Flag, MoreHorizontal } from 'lucide-react';
 import type { Club, Expense, ExpenseStatus, User } from '@/lib/types';
 import { StatusBadge } from './status-badge';
 import { format } from 'date-fns';
@@ -72,6 +73,24 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
     }
   };
 
+  const handleFlagExpense = async (expenseId: string) => {
+    const expenseRef = doc(db, 'expenses', expenseId);
+    try {
+      await updateDoc(expenseRef, { isFlagged: true });
+      toast({
+        title: 'Expense Flagged',
+        description: 'This expense has been flagged for admin review.',
+      });
+    } catch (error) {
+      console.error('Error flagging expense:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Flagging Failed',
+        description: 'Could not flag the expense.',
+      });
+    }
+  };
+
   const handleToggleExpand = (expenseId: string, currentComment?: string) => {
     if (expandedId === expenseId) {
       setExpandedId(null);
@@ -113,9 +132,9 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
     }
   };
 
-  const canChangeStatus = role === 'admin';
+  const canPerformActions = role === 'admin' || role === 'representative';
   const showSubmitter = role === 'admin' || role === 'representative';
-  const numColumns = showSubmitter ? (canChangeStatus ? 7 : 6) : 5;
+  const numColumns = showSubmitter ? (canPerformActions ? 7 : 6) : 5;
 
   return (
     <div className="rounded-lg border">
@@ -128,7 +147,7 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
             <TableHead className="text-right">Amount</TableHead>
             <TableHead>Submitted</TableHead>
             <TableHead>Status</TableHead>
-            {canChangeStatus && (
+            {canPerformActions && (
               <TableHead>
                 <span className="sr-only">Actions</span>
               </TableHead>
@@ -149,7 +168,10 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
                   {getClubName(expense)}
                 </TableCell>
                 {showSubmitter && <TableCell>{getSubmitterName(expense)}</TableCell>}
-                <TableCell>{expense.description}</TableCell>
+                <TableCell className="flex items-center gap-2">
+                    {expense.isFlagged && role === 'admin' && <Flag className="h-4 w-4 text-destructive" title="Flagged as fraudulent"/>}
+                    {expense.description}
+                </TableCell>
                 <TableCell className="text-right">
                   ${expense.amount.toFixed(2)}
                 </TableCell>
@@ -159,7 +181,7 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
                 <TableCell>
                   <StatusBadge status={expense.status} />
                 </TableCell>
-                {canChangeStatus && (
+                {canPerformActions && (
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -173,27 +195,39 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() =>
-                            handleStatusChange(expense.id, 'Approved')
-                          }
-                        >
-                          Approve
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() =>
-                            handleStatusChange(expense.id, 'Rejected')
-                          }
-                        >
-                          Reject
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() =>
-                            handleStatusChange(expense.id, 'Under Review')
-                          }
-                        >
-                          Mark as 'Under Review'
-                        </DropdownMenuItem>
+                        {role === 'admin' && (
+                            <>
+                                <DropdownMenuItem
+                                onClick={() =>
+                                    handleStatusChange(expense.id, 'Approved')
+                                }
+                                >
+                                Approve
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                onClick={() =>
+                                    handleStatusChange(expense.id, 'Rejected')
+                                }
+                                >
+                                Reject
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                onClick={() =>
+                                    handleStatusChange(expense.id, 'Under Review')
+                                }
+                                >
+                                Mark as 'Under Review'
+                                </DropdownMenuItem>
+                            </>
+                        )}
+                        {role === 'representative' && (
+                            <>
+                                <DropdownMenuItem onClick={() => handleFlagExpense(expense.id)}>
+                                    <Flag className="mr-2 h-4 w-4" />
+                                    Flag Expense
+                                </DropdownMenuItem>
+                            </>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -202,7 +236,7 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
               {expandedId === expense.id && (
                 <TableRow>
                   <TableCell colSpan={numColumns} className="bg-muted/50 p-4">
-                    {canChangeStatus ? (
+                    {role === 'admin' ? (
                        <div className="space-y-4">
                         <h4 className="text-sm font-semibold">Review Expense & Add Comment</h4>
                          <Textarea

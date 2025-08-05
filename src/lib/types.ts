@@ -29,6 +29,7 @@ export interface Expense {
   submitterId: string;
   submitterName?: string;
   adminComment?: string;
+  isFlagged?: boolean;
 }
 
 export interface PrioritizedExpense extends Expense {
