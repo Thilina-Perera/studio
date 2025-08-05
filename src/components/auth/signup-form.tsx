@@ -60,10 +60,16 @@ export function SignupForm() {
       router.push('/dashboard');
     } catch (error: any) {
       console.error("Signup Error:", error);
+      let description = "Could not create your account. Please try again.";
+      if (error.code === 'auth/email-already-in-use') {
+        description = "An account with this email already exists. Please log in or use a different email.";
+      } else if (error.message) {
+        description = error.message;
+      }
        toast({
         variant: 'destructive',
         title: 'Sign Up Failed',
-        description: error.message || "Could not create your account. Please try again.",
+        description: description,
       });
     }
   }
