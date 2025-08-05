@@ -29,6 +29,7 @@ const repNav = [
 const studentNav = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/expenses', label: 'My Expenses', icon: CreditCard },
+    { href: '/clubs', label: 'My Clubs', icon: Users },
 ]
 
 export function AppSidebar() {
