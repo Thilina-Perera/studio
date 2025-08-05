@@ -7,7 +7,7 @@ import { Dashboard } from '@/components/dashboard/dashboard';
 import { useUser } from '@/hooks/use-user';
 
 export default function DashboardPage() {
-  const { clubs, expenses } = useUser();
+  const { clubs, expenses, users } = useUser();
   return (
     <Dashboard
       adminDashboard={<AdminDashboard allClubs={clubs} allExpenses={expenses} />}

@@ -18,15 +18,16 @@ export interface Club {
 export type ExpenseStatus = 'Pending' | 'Under Review' | 'Approved' | 'Rejected';
 
 export interface Expense {
-  id: string;
+  id:string;
   clubId: string;
-  clubName?: string; // Add optional clubName
+  clubName?: string;
   description: string;
   amount: number;
   status: ExpenseStatus;
   submittedDate: string;
   receiptUrl?: string;
   submitterId: string;
+  submitterName?: string;
   adminComment?: string;
 }
 

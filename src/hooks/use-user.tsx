@@ -24,6 +24,7 @@ interface UserContextType {
   role: UserRole | null;
   clubs: Club[];
   expenses: Expense[];
+  users: AppUser[];
   loading: boolean;
   logout: () => void;
 }
@@ -38,6 +39,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<UserRole | null>(null);
   const [clubs, setClubs] = useState<Club[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [users, setUsers] = useState<AppUser[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -61,6 +63,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
           setRole(null);
           setClubs([]);
           setExpenses([]);
+          setUsers([]);
           setLoading(false);
         }
       }
@@ -76,7 +79,22 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     const clubsCollection = collection(db, 'clubs');
     const expensesCollection = collection(db, 'expenses');
+    const usersCollection = collection(db, 'users');
     const userDocRef = doc(db, 'users', firebaseUser.uid);
+
+    const unsubscribeUsers = onSnapshot(
+      usersCollection,
+      (snapshot: QuerySnapshot<DocumentData>) => {
+        const usersData = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+        })) as AppUser[];
+        setUsers(usersData);
+      },
+      (error) => {
+          console.error('Error fetching users:', error);
+      }
+    )
 
     const unsubscribeClubs = onSnapshot(
       clubsCollection,
@@ -90,7 +108,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         // After clubs are loaded, determine the role
         getDoc(userDocRef).then(userDoc => {
             if (userDoc.exists()) {
-                const userData = userDoc.data() as AppUser;
+                const userData = { id: userDoc.id, ...userDoc.data() } as AppUser;
                 setUser(userData);
 
                 if (userData.role === 'admin') {
@@ -133,6 +151,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     return () => {
       unsubscribeClubs();
       unsubscribeExpenses();
+      unsubscribeUsers();
     };
   }, [firebaseUser]);
   
@@ -142,6 +161,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     role,
     clubs,
     expenses,
+    users,
     loading,
     logout: handleLogout,
   };

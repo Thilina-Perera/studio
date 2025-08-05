@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
-import type { Club, Expense, ExpenseStatus } from '@/lib/types';
+import type { Club, Expense, ExpenseStatus, User } from '@/lib/types';
 import { StatusBadge } from './status-badge';
 import { format } from 'date-fns';
 import { useUser } from '@/hooks/use-user';
@@ -30,9 +30,10 @@ import { Textarea } from '../ui/textarea';
 interface ExpenseTableProps {
   expenses: Expense[];
   clubs: Club[];
+  users?: User[];
 }
 
-export function ExpenseTable({ expenses, clubs }: ExpenseTableProps) {
+export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps) {
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
   const [comment, setComment] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -44,6 +45,11 @@ export function ExpenseTable({ expenses, clubs }: ExpenseTableProps) {
     if (expense.clubName) return expense.clubName;
     return clubs.find((c) => c.id === expense.clubId)?.name || 'Unknown Club';
   };
+
+  const getSubmitterName = (expense: Expense) => {
+    if (expense.submitterName) return expense.submitterName;
+    return users.find(u => u.id === expense.submitterId)?.name || expense.submitterId;
+  }
 
   const handleStatusChange = async (
     expenseId: string,
@@ -108,7 +114,9 @@ export function ExpenseTable({ expenses, clubs }: ExpenseTableProps) {
   };
 
   const canChangeStatus = role === 'admin';
-  const numColumns = canChangeStatus ? 6 : 5;
+  const isAdminView = role === 'admin';
+  const numColumns = isAdminView ? 7 : 5;
+
 
   return (
     <div className="rounded-lg border">
@@ -116,6 +124,7 @@ export function ExpenseTable({ expenses, clubs }: ExpenseTableProps) {
         <TableHeader>
           <TableRow>
             <TableHead>Club</TableHead>
+            {isAdminView && <TableHead>Submitter</TableHead>}
             <TableHead>Description</TableHead>
             <TableHead className="text-right">Amount</TableHead>
             <TableHead>Submitted</TableHead>
@@ -140,6 +149,7 @@ export function ExpenseTable({ expenses, clubs }: ExpenseTableProps) {
                 <TableCell className="font-medium">
                   {getClubName(expense)}
                 </TableCell>
+                {isAdminView && <TableCell>{getSubmitterName(expense)}</TableCell>}
                 <TableCell>{expense.description}</TableCell>
                 <TableCell className="text-right">
                   ${expense.amount.toFixed(2)}

@@ -12,7 +12,7 @@ import { useUser } from '@/hooks/use-user';
 import Link from 'next/link';
 
 export default function ExpensesPage() {
-  const { user, role, clubs, expenses } = useUser();
+  const { user, role, clubs, expenses, users } = useUser();
 
   // AppLayout guarantees user, role, clubs, and expenses are loaded.
   const userExpenses = expenses.filter((expense) => {
@@ -45,7 +45,7 @@ export default function ExpensesPage() {
           </Button>
         </CardHeader>
         <CardContent>
-          <ExpenseTable expenses={userExpenses} clubs={clubs} />
+          <ExpenseTable expenses={userExpenses} clubs={clubs} users={users} />
         </CardContent>
       </Card>
     </div>

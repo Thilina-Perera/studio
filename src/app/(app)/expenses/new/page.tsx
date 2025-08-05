@@ -121,6 +121,7 @@ export default function NewExpensePage() {
             status: 'Pending',
             submittedDate: new Date().toISOString(),
             submitterId: user.id,
+            submitterName: user.name,
         };
         await addDoc(collection(db, 'expenses'), newExpense);
         

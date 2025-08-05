@@ -20,6 +20,7 @@ import { DateRangePicker } from '../ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import type { Club, Expense } from '@/lib/types';
 import { AiExpensePrioritization } from './ai-expense-prioritization';
+import { useUser } from '@/hooks/use-user';
 
 interface AdminDashboardProps {
   allExpenses: Expense[];
@@ -31,6 +32,7 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
   const [clubFilter, setClubFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState<DateRange | undefined>();
   const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>([]);
+  const { users } = useUser();
 
   useEffect(() => {
     let expenses = allExpenses;
@@ -104,7 +106,7 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
             </Select>
             <DateRangePicker date={dateFilter} onDateChange={setDateFilter} />
           </div>
-          <ExpenseTable expenses={filteredExpenses} clubs={allClubs} />
+          <ExpenseTable expenses={filteredExpenses} clubs={allClubs} users={users} />
         </CardContent>
       </Card>
     </div>
