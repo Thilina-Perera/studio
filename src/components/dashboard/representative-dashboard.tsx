@@ -19,7 +19,7 @@ interface RepresentativeDashboardProps {
 }
 
 export function RepresentativeDashboard({ allClubs, allExpenses }: RepresentativeDashboardProps) {
-  const { user } = useUser();
+  const { user, users } = useUser();
 
   const userClubs = allClubs.filter(
     (club) => club.representativeId === user!.id
@@ -93,7 +93,7 @@ export function RepresentativeDashboard({ allClubs, allExpenses }: Representativ
           </Button>
         </CardHeader>
         <CardContent>
-          <ExpenseTable expenses={userExpenses.slice(0, 5)} clubs={allClubs} />
+          <ExpenseTable expenses={userExpenses.slice(0, 5)} clubs={allClubs} users={users}/>
         </CardContent>
       </Card>
     </div>

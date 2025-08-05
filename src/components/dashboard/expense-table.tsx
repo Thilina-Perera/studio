@@ -114,9 +114,8 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
   };
 
   const canChangeStatus = role === 'admin';
-  const isAdminView = role === 'admin';
-  const numColumns = isAdminView ? 7 : 5;
-
+  const showSubmitter = role === 'admin' || role === 'representative';
+  const numColumns = showSubmitter ? (canChangeStatus ? 7 : 6) : 5;
 
   return (
     <div className="rounded-lg border">
@@ -124,7 +123,7 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
         <TableHeader>
           <TableRow>
             <TableHead>Club</TableHead>
-            {isAdminView && <TableHead>Submitter</TableHead>}
+            {showSubmitter && <TableHead>Submitter</TableHead>}
             <TableHead>Description</TableHead>
             <TableHead className="text-right">Amount</TableHead>
             <TableHead>Submitted</TableHead>
@@ -149,7 +148,7 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
                 <TableCell className="font-medium">
                   {getClubName(expense)}
                 </TableCell>
-                {isAdminView && <TableCell>{getSubmitterName(expense)}</TableCell>}
+                {showSubmitter && <TableCell>{getSubmitterName(expense)}</TableCell>}
                 <TableCell>{expense.description}</TableCell>
                 <TableCell className="text-right">
                   ${expense.amount.toFixed(2)}
