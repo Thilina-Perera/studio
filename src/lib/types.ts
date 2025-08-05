@@ -27,6 +27,7 @@ export interface Expense {
   submittedDate: string;
   receiptUrl?: string;
   submitterId: string;
+  adminComment?: string;
 }
 
 export interface PrioritizedExpense extends Expense {
