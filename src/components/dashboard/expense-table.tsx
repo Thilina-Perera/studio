@@ -1,6 +1,6 @@
 
 'use client';
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Table,
   TableHeader,
@@ -25,6 +25,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Textarea } from '../ui/textarea';
 
 interface ExpenseTableProps {
   expenses: Expense[];
@@ -32,7 +33,10 @@ interface ExpenseTableProps {
 }
 
 export function ExpenseTable({ expenses, clubs }: ExpenseTableProps) {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = React.useState<string | null>(null);
+  const [comment, setComment] = React.useState('');
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
   const { role } = useUser();
   const { toast } = useToast();
 
@@ -61,11 +65,47 @@ export function ExpenseTable({ expenses, clubs }: ExpenseTableProps) {
       });
     }
   };
-  
-  const handleToggleExpand = (expenseId: string) => {
-    setExpandedId(expandedId === expenseId ? null : expenseId);
+
+  const handleToggleExpand = (expenseId: string, currentComment?: string) => {
+    if (expandedId === expenseId) {
+      setExpandedId(null);
+      setComment('');
+    } else {
+      setExpandedId(expenseId);
+      setComment(currentComment || '');
+    }
   };
 
+  const handleCommentSubmit = async (expenseId: string) => {
+    if (!comment) {
+      toast({
+        variant: 'destructive',
+        title: 'Comment is empty',
+        description: 'Please enter a comment before submitting.',
+      });
+      return;
+    }
+    setIsSubmitting(true);
+    const expenseRef = doc(db, 'expenses', expenseId);
+    try {
+      await updateDoc(expenseRef, { adminComment: comment });
+      toast({
+        title: 'Comment Saved!',
+        description: 'Your comment has been added to the expense.',
+      });
+      setComment('');
+      setExpandedId(null); // Collapse after submitting
+    } catch (error) {
+      console.error('Error saving comment: ', error);
+      toast({
+        variant: 'destructive',
+        title: 'Save Failed',
+        description: 'Could not save your comment. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const canChangeStatus = role === 'admin';
   const numColumns = canChangeStatus ? 6 : 5;
@@ -90,9 +130,12 @@ export function ExpenseTable({ expenses, clubs }: ExpenseTableProps) {
         <TableBody>
           {expenses.map((expense) => (
             <React.Fragment key={expense.id}>
-              <TableRow 
-                onClick={() => handleToggleExpand(expense.id)}
-                className={cn(expense.adminComment && "cursor-pointer", expandedId === expense.id && "bg-muted/50")}
+              <TableRow
+                onClick={() => handleToggleExpand(expense.id, expense.adminComment)}
+                className={cn(
+                  'cursor-pointer',
+                  expandedId === expense.id && 'bg-muted/50'
+                )}
               >
                 <TableCell className="font-medium">
                   {getClubName(expense)}
@@ -111,19 +154,27 @@ export function ExpenseTable({ expenses, clubs }: ExpenseTableProps) {
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0" onClick={(e) => e.stopPropagation()}>
+                        <Button
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <span className="sr-only">Open menu</span>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onClick={() => handleStatusChange(expense.id, 'Approved')}
+                          onClick={() =>
+                            handleStatusChange(expense.id, 'Approved')
+                          }
                         >
                           Approve
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleStatusChange(expense.id, 'Rejected')}
+                          onClick={() =>
+                            handleStatusChange(expense.id, 'Rejected')
+                          }
                         >
                           Reject
                         </DropdownMenuItem>
@@ -139,14 +190,37 @@ export function ExpenseTable({ expenses, clubs }: ExpenseTableProps) {
                   </TableCell>
                 )}
               </TableRow>
-              {expandedId === expense.id && expense.adminComment && (
+              {expandedId === expense.id && (
                 <TableRow>
-                    <TableCell colSpan={numColumns} className="bg-muted/50 p-4">
+                  <TableCell colSpan={numColumns} className="bg-muted/50 p-4">
+                    {canChangeStatus ? (
+                       <div className="space-y-4">
+                        <h4 className="text-sm font-semibold">Review Expense & Add Comment</h4>
+                         <Textarea
+                           id={`comment-${expense.id}`}
+                           placeholder="Leave a comment for the submitter..."
+                           value={comment}
+                           onChange={(e) => setComment(e.target.value)}
+                         />
+                         <Button
+                           size="sm"
+                           onClick={() => handleCommentSubmit(expense.id)}
+                           disabled={isSubmitting}
+                         >
+                           {isSubmitting ? 'Submitting...' : 'Submit Comment'}
+                         </Button>
+                       </div>
+                    ) : (
+                      expense.adminComment && (
                         <div className="text-sm">
-                            <h4 className="font-semibold mb-1">Admin Comment</h4>
-                            <p className="text-muted-foreground pl-2 border-l-2">{expense.adminComment}</p>
+                          <h4 className="font-semibold mb-1">Admin Comment</h4>
+                          <p className="text-muted-foreground pl-2 border-l-2">
+                            {expense.adminComment}
+                          </p>
                         </div>
-                    </TableCell>
+                      )
+                    )}
+                  </TableCell>
                 </TableRow>
               )}
             </React.Fragment>
