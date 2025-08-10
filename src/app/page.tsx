@@ -12,7 +12,7 @@ export default function Home() {
         <Logo />
         <nav className="ml-auto flex gap-4 sm:gap-6">
           <Link
-            className="text-sm font-medium hover:underline underline-offset-4"
+            className="text-sm font-medium hover:underline underline-offset-4 flex items-center h-10"
             href="/login"
           >
             Log In
