@@ -96,6 +96,11 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
       setExpandedId(null);
       setComment('');
     } else {
+      const expense = expenses.find(e => e.id === expenseId);
+      // DEBUG: Log the data URI when the row is expanded
+      if (expense) {
+        console.log("Receipt Data URI:", expense.receiptDataUri);
+      }
       setExpandedId(expenseId);
       setComment(currentComment || '');
     }
