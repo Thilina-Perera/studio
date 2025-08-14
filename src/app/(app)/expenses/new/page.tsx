@@ -45,7 +45,7 @@ const formSchema = z.object({
     .string()
     .min(10, 'Description must be at least 10 characters.'),
   amount: z.coerce
-    .number()
+    .number({ invalid_type_error: "Amount must be a number."})
     .positive('Amount must be a positive number.'),
   receipt: z.any().optional(),
 });
@@ -142,8 +142,6 @@ export default function NewExpensePage() {
             description: "Your expense has been successfully submitted for review.",
         })
         router.push('/dashboard');
-        // Ideally, we'd refetch the data or update the state locally
-        router.refresh();
     } catch (error) {
         console.error("Error submitting expense: ", error);
         toast({
@@ -235,7 +233,6 @@ export default function NewExpensePage() {
                 <FormItem>
                   <FormLabel>Receipt</FormLabel>
                   <FormControl>
-                    {/* Using a custom file handling to work with react-hook-form */}
                     <Input 
                       type="file" 
                       accept="image/*,.pdf"
