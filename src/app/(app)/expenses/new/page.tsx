@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -36,8 +37,10 @@ import { useToast } from '@/hooks/use-toast';
 import type { Expense } from '@/lib/types';
 import { addDoc, collection } from 'firebase/firestore';
 import { db, storage } from '@/lib/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
+import { CheckCircle, FileUp } from 'lucide-react';
 
 const formSchema = z.object({
   clubId: z.string().min(1, 'Please select a club.'),
@@ -47,7 +50,7 @@ const formSchema = z.object({
   amount: z.coerce
     .number({ invalid_type_error: "Amount must be a number."})
     .positive('Amount must be a positive number.'),
-  receipt: z.any().optional(),
+  receiptUrl: z.string().optional(),
 });
 
 function NewExpensePageSkeleton() {
@@ -88,13 +91,17 @@ export default function NewExpensePage() {
   const { toast } = useToast();
   const router = useRouter();
   
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [receiptUrl, setReceiptUrl] = useState<string | undefined>(undefined);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       clubId: '',
       description: '',
       amount: '' as any,
-      receipt: undefined,
+      receiptUrl: '',
     },
   });
     
@@ -102,6 +109,45 @@ export default function NewExpensePage() {
   const availableClubs = role === 'representative' 
     ? clubs.filter((club) => club.representativeId === user?.id)
     : clubs;
+
+  const handleReceiptUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+    
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    const storagePath = `receipts/${user.id}/${Date.now()}-${file.name}`;
+    const storageRef = ref(storage, storagePath);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    uploadTask.on('state_changed',
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setUploadProgress(progress);
+      },
+      (error) => {
+        console.error("Upload error:", error);
+        toast({
+          variant: "destructive",
+          title: "Upload Failed",
+          description: "Your receipt could not be uploaded. Please try again."
+        });
+        setIsUploading(false);
+      },
+      () => {
+        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+          setReceiptUrl(downloadURL);
+          form.setValue('receiptUrl', downloadURL);
+          setIsUploading(false);
+          toast({
+            title: "Upload Complete",
+            description: "Your receipt has been uploaded successfully."
+          })
+        });
+      }
+    );
+  }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!user) {
@@ -113,16 +159,6 @@ export default function NewExpensePage() {
         return;
     }
     try {
-        let receiptUrl: string | undefined = undefined;
-        const receiptFile = values.receipt?.[0];
-
-        if (receiptFile) {
-            const storagePath = `receipts/${user.id}/${Date.now()}-${receiptFile.name}`;
-            const storageRef = ref(storage, storagePath);
-            const uploadResult = await uploadBytes(storageRef, receiptFile);
-            receiptUrl = await getDownloadURL(uploadResult.ref);
-        }
-
         const selectedClub = clubs.find(c => c.id === values.clubId);
         const newExpense: Omit<Expense, 'id'> = {
             clubId: values.clubId,
@@ -133,7 +169,7 @@ export default function NewExpensePage() {
             submittedDate: new Date().toISOString(),
             submitterId: user.id,
             submitterName: user.name,
-            receiptUrl: receiptUrl,
+            receiptUrl: values.receiptUrl,
         };
         await addDoc(collection(db, 'expenses'), newExpense);
         
@@ -220,7 +256,7 @@ export default function NewExpensePage() {
                 <FormItem>
                   <FormLabel>Amount</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="99.99" {...field} />
+                    <Input type="number" step="0.01" placeholder="99.99" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -228,25 +264,33 @@ export default function NewExpensePage() {
             />
              <FormField
               control={form.control}
-              name="receipt"
+              name="receiptUrl"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Receipt</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="file" 
-                      accept="image/*,.pdf"
-                      {...form.register('receipt')} 
-                    />
-                  </FormControl>
+                   <FormControl>
+                      <Input 
+                        type="file" 
+                        accept="image/*,.pdf"
+                        onChange={handleReceiptUpload}
+                        disabled={isUploading}
+                      />
+                    </FormControl>
                    <FormDescription>
                     Upload a clear image or PDF of the receipt.
                   </FormDescription>
+                  {isUploading && <Progress value={uploadProgress} className="mt-2" />}
+                  {receiptUrl && !isUploading && (
+                    <div className="flex items-center gap-2 text-sm text-green-600 mt-2">
+                      <CheckCircle className="h-4 w-4" />
+                      <span>Receipt uploaded successfully.</span>
+                    </div>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={form.formState.isSubmitting}>
+            <Button type="submit" disabled={form.formState.isSubmitting || isUploading}>
               {form.formState.isSubmitting ? "Submitting..." : "Submit Expense"}
             </Button>
           </form>
