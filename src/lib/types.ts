@@ -25,7 +25,7 @@ export interface Expense {
   amount: number;
   status: ExpenseStatus;
   submittedDate: string;
-  receiptUrl?: string;
+  receiptDataUri?: string;
   submitterId: string;
   submitterName?: string;
   adminComment?: string;

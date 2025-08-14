@@ -36,11 +36,9 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import type { Expense } from '@/lib/types';
 import { addDoc, collection } from 'firebase/firestore';
-import { db, storage } from '@/lib/firebase';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Progress } from '@/components/ui/progress';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, FileUp } from 'lucide-react';
 
 const formSchema = z.object({
   clubId: z.string().min(1, 'Please select a club.'),
@@ -50,7 +48,7 @@ const formSchema = z.object({
   amount: z.coerce
     .number({ invalid_type_error: "Amount must be a number."})
     .positive('Amount must be a positive number.'),
-  receiptUrl: z.string().optional(),
+  receiptDataUri: z.string().optional(),
 });
 
 function NewExpensePageSkeleton() {
@@ -91,9 +89,9 @@ export default function NewExpensePage() {
   const { toast } = useToast();
   const router = useRouter();
   
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [receiptUrl, setReceiptUrl] = useState<string | undefined>(undefined);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [receiptDataUri, setReceiptDataUri] = useState<string | undefined>(undefined);
+  const [receiptFileName, setReceiptFileName] = useState<string | undefined>(undefined);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -101,7 +99,7 @@ export default function NewExpensePage() {
       clubId: '',
       description: '',
       amount: '' as any,
-      receiptUrl: '',
+      receiptDataUri: '',
     },
   });
     
@@ -110,43 +108,45 @@ export default function NewExpensePage() {
     ? clubs.filter((club) => club.representativeId === user?.id)
     : clubs;
 
-  const handleReceiptUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleReceiptChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !user) return;
-    
-    setIsUploading(true);
-    setUploadProgress(0);
+    if (!file) return;
 
-    const storagePath = `receipts/${user.id}/${Date.now()}-${file.name}`;
-    const storageRef = ref(storage, storagePath);
-    const uploadTask = uploadBytesResumable(storageRef, file);
-
-    uploadTask.on('state_changed',
-      (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setUploadProgress(progress);
-      },
-      (error) => {
-        console.error("Upload error:", error);
+    if (file.size > 1024 * 1024) { // 1MB limit
         toast({
-          variant: "destructive",
-          title: "Upload Failed",
-          description: "Your receipt could not be uploaded. Please try again."
+            variant: "destructive",
+            title: "File Too Large",
+            description: "Receipt file size cannot exceed 1MB. Please choose a smaller file."
         });
-        setIsUploading(false);
-      },
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-          setReceiptUrl(downloadURL);
-          form.setValue('receiptUrl', downloadURL);
-          setIsUploading(false);
-          toast({
-            title: "Upload Complete",
-            description: "Your receipt has been uploaded successfully."
+        return;
+    }
+    
+    setIsProcessing(true);
+    setReceiptDataUri(undefined);
+    setReceiptFileName(undefined);
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const dataUri = e.target?.result as string;
+        setReceiptDataUri(dataUri);
+        setReceiptFileName(file.name);
+        form.setValue('receiptDataUri', dataUri);
+        setIsProcessing(false);
+         toast({
+            title: "Receipt Attached",
+            description: `${file.name} has been attached successfully.`
           })
+    };
+    reader.onerror = (error) => {
+        console.error("File reading error:", error);
+        toast({
+            variant: "destructive",
+            title: "File Read Failed",
+            description: "Could not read the selected file. Please try again."
         });
-      }
-    );
+        setIsProcessing(false);
+    }
+    reader.readAsDataURL(file);
   }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -169,7 +169,7 @@ export default function NewExpensePage() {
             submittedDate: new Date().toISOString(),
             submitterId: user.id,
             submitterName: user.name,
-            receiptUrl: values.receiptUrl,
+            receiptDataUri: values.receiptDataUri,
         };
         await addDoc(collection(db, 'expenses'), newExpense);
         
@@ -262,9 +262,9 @@ export default function NewExpensePage() {
                 </FormItem>
               )}
             />
-             <FormField
+            <FormField
               control={form.control}
-              name="receiptUrl"
+              name="receiptDataUri"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Receipt</FormLabel>
@@ -272,25 +272,30 @@ export default function NewExpensePage() {
                       <Input 
                         type="file" 
                         accept="image/*,.pdf"
-                        onChange={handleReceiptUpload}
-                        disabled={isUploading}
+                        onChange={handleReceiptChange}
+                        disabled={isProcessing}
                       />
                     </FormControl>
                    <FormDescription>
-                    Upload a clear image or PDF of the receipt.
+                    Upload a clear image or PDF of the receipt (max 1MB).
                   </FormDescription>
-                  {isUploading && <Progress value={uploadProgress} className="mt-2" />}
-                  {receiptUrl && !isUploading && (
+                  {isProcessing && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+                        <FileUp className="h-4 w-4 animate-pulse" />
+                        <span>Processing file...</span>
+                    </div>
+                  )}
+                  {receiptDataUri && !isProcessing && (
                     <div className="flex items-center gap-2 text-sm text-green-600 mt-2">
                       <CheckCircle className="h-4 w-4" />
-                      <span>Receipt uploaded successfully.</span>
+                      <span>{receiptFileName} attached.</span>
                     </div>
                   )}
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={form.formState.isSubmitting || isUploading}>
+            <Button type="submit" disabled={form.formState.isSubmitting || isProcessing}>
               {form.formState.isSubmitting ? "Submitting..." : "Submit Expense"}
             </Button>
           </form>
