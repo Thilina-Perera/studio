@@ -17,7 +17,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Flag, MoreHorizontal } from 'lucide-react';
+import { Flag, MoreHorizontal, Receipt } from 'lucide-react';
 import type { Club, Expense, ExpenseStatus, User } from '@/lib/types';
 import { StatusBadge } from './status-badge';
 import { format } from 'date-fns';
@@ -235,9 +235,31 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
               </TableRow>
               {expandedId === expense.id && (
                 <TableRow>
-                  <TableCell colSpan={numColumns} className="bg-muted/50 p-4">
-                    {role === 'admin' ? (
-                       <div className="space-y-4">
+                  <TableCell colSpan={numColumns} className="bg-muted/50 p-4 space-y-4">
+                     <div className="flex justify-between items-start">
+                        <div>
+                        {expense.adminComment ? (
+                            <div className="text-sm">
+                                <h4 className="font-semibold mb-1">Admin Comment</h4>
+                                <p className="text-muted-foreground pl-2 border-l-2">
+                                {expense.adminComment}
+                                </p>
+                            </div>
+                        ) : (
+                           <p className="text-sm text-muted-foreground">No admin comments yet.</p>
+                        )}
+                        </div>
+                        {expense.receiptUrl && (
+                            <Button variant="outline" size="sm" asChild>
+                                <a href={expense.receiptUrl} target="_blank" rel="noopener noreferrer">
+                                    <Receipt className="mr-2 h-4 w-4" />
+                                    View Receipt
+                                </a>
+                            </Button>
+                        )}
+                     </div>
+                    {role === 'admin' && (
+                       <div className="space-y-2 pt-4 border-t">
                         <h4 className="text-sm font-semibold">Review Expense & Add Comment</h4>
                          <Textarea
                            id={`comment-${expense.id}`}
@@ -253,15 +275,6 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
                            {isSubmitting ? 'Submitting...' : 'Submit Comment'}
                          </Button>
                        </div>
-                    ) : (
-                      expense.adminComment && (
-                        <div className="text-sm">
-                          <h4 className="font-semibold mb-1">Admin Comment</h4>
-                          <p className="text-muted-foreground pl-2 border-l-2">
-                            {expense.adminComment}
-                          </p>
-                        </div>
-                      )
                     )}
                   </TableCell>
                 </TableRow>

@@ -35,7 +35,8 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import type { Expense } from '@/lib/types';
 import { addDoc, collection } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, storage } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const formSchema = z.object({
@@ -112,6 +113,16 @@ export default function NewExpensePage() {
         return;
     }
     try {
+        let receiptUrl: string | undefined = undefined;
+        const receiptFile = values.receipt?.[0];
+
+        if (receiptFile) {
+            const storagePath = `receipts/${user.id}/${Date.now()}-${receiptFile.name}`;
+            const storageRef = ref(storage, storagePath);
+            const uploadResult = await uploadBytes(storageRef, receiptFile);
+            receiptUrl = await getDownloadURL(uploadResult.ref);
+        }
+
         const selectedClub = clubs.find(c => c.id === values.clubId);
         const newExpense: Omit<Expense, 'id'> = {
             clubId: values.clubId,
@@ -122,6 +133,7 @@ export default function NewExpensePage() {
             submittedDate: new Date().toISOString(),
             submitterId: user.id,
             submitterName: user.name,
+            receiptUrl: receiptUrl,
         };
         await addDoc(collection(db, 'expenses'), newExpense);
         
@@ -219,11 +231,16 @@ export default function NewExpensePage() {
              <FormField
               control={form.control}
               name="receipt"
-              render={({ field: { onChange, value, ...rest } }) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>Receipt</FormLabel>
                   <FormControl>
-                    <Input type="file" onChange={e => onChange(e.target.files?.[0])} {...rest} />
+                    {/* Using a custom file handling to work with react-hook-form */}
+                    <Input 
+                      type="file" 
+                      accept="image/*,.pdf"
+                      {...form.register('receipt')} 
+                    />
                   </FormControl>
                    <FormDescription>
                     Upload a clear image or PDF of the receipt.
