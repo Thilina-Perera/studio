@@ -1,3 +1,4 @@
+
 export type UserRole = 'admin' | 'representative' | 'student';
 
 export interface User {

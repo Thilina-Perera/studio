@@ -39,6 +39,7 @@ import { addDoc, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CheckCircle, FileUp } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 
 const formSchema = z.object({
   clubId: z.string().min(1, 'Please select a club.'),
@@ -90,7 +91,7 @@ export default function NewExpensePage() {
   const router = useRouter();
   
   const [isProcessing, setIsProcessing] = useState(false);
-  const [receiptDataUri, setReceiptDataUri] = useState<string | undefined>(undefined);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [receiptFileName, setReceiptFileName] = useState<string | undefined>(undefined);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -103,40 +104,49 @@ export default function NewExpensePage() {
     },
   });
     
-  // Representatives can submit for their clubs, students can submit for any club.
   const availableClubs = role === 'representative' 
     ? clubs.filter((club) => club.representativeId === user?.id)
     : clubs;
 
   const handleReceiptChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || !user) return;
 
     if (file.size > 1024 * 1024) { // 1MB limit
         toast({
             variant: "destructive",
             title: "File Too Large",
-            description: "Receipt file size cannot exceed 1MB. Please choose a smaller file."
+            description: "Receipt file size cannot exceed 1MB to be stored in the database."
         });
         return;
     }
     
-    setIsProcessing(true);
-    setReceiptDataUri(undefined);
-    setReceiptFileName(undefined);
-    
     const reader = new FileReader();
+    
+    reader.onprogress = (event) => {
+        if (event.lengthComputable) {
+            const progress = (event.loaded / event.total) * 100;
+            setUploadProgress(progress);
+        }
+    };
+
+    reader.onloadstart = () => {
+        setIsProcessing(true);
+        setUploadProgress(0);
+        setReceiptFileName(file.name);
+    }
+    
     reader.onload = (e) => {
         const dataUri = e.target?.result as string;
-        setReceiptDataUri(dataUri);
-        setReceiptFileName(file.name);
         form.setValue('receiptDataUri', dataUri);
-        setIsProcessing(false);
-         toast({
-            title: "Receipt Attached",
-            description: `${file.name} has been attached successfully.`
-          })
+        setUploadProgress(100);
+        toast({
+          title: "Receipt Attached",
+          description: `${file.name} has been attached successfully.`
+        });
+        setTimeout(() => setIsProcessing(false), 500); // Give time for progress bar to hit 100%
     };
+
     reader.onerror = (error) => {
         console.error("File reading error:", error);
         toast({
@@ -145,6 +155,8 @@ export default function NewExpensePage() {
             description: "Could not read the selected file. Please try again."
         });
         setIsProcessing(false);
+        setReceiptFileName(undefined);
+        setUploadProgress(0);
     }
     reader.readAsDataURL(file);
   }
@@ -262,39 +274,34 @@ export default function NewExpensePage() {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="receiptDataUri"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Receipt</FormLabel>
-                   <FormControl>
-                      <Input 
-                        type="file" 
-                        accept="image/*,.pdf"
-                        onChange={handleReceiptChange}
-                        disabled={isProcessing}
-                      />
-                    </FormControl>
-                   <FormDescription>
-                    Upload a clear image or PDF of the receipt (max 1MB).
-                  </FormDescription>
-                  {isProcessing && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
-                        <FileUp className="h-4 w-4 animate-pulse" />
-                        <span>Processing file...</span>
+            <FormItem>
+                <FormLabel>Receipt</FormLabel>
+                <FormControl>
+                    <Input 
+                    type="file" 
+                    accept="image/*,.pdf"
+                    onChange={handleReceiptChange}
+                    disabled={isProcessing}
+                    />
+                </FormControl>
+                <FormDescription>
+                Upload a clear image or PDF of the receipt (max 1MB).
+                </FormDescription>
+                {isProcessing && (
+                    <div className="space-y-2">
+                        <Progress value={uploadProgress} className="w-full" />
+                        <p className="text-sm text-muted-foreground">Uploading {receiptFileName}...</p>
                     </div>
-                  )}
-                  {receiptDataUri && !isProcessing && (
-                    <div className="flex items-center gap-2 text-sm text-green-600 mt-2">
-                      <CheckCircle className="h-4 w-4" />
-                      <span>{receiptFileName} attached.</span>
-                    </div>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                )}
+                {form.getValues('receiptDataUri') && !isProcessing && (
+                <div className="flex items-center gap-2 text-sm text-green-600 mt-2">
+                    <CheckCircle className="h-4 w-4" />
+                    <span>{receiptFileName} attached.</span>
+                </div>
+                )}
+                <FormMessage />
+            </FormItem>
+
             <Button type="submit" disabled={form.formState.isSubmitting || isProcessing}>
               {form.formState.isSubmitting ? "Submitting..." : "Submit Expense"}
             </Button>
