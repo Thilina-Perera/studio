@@ -256,7 +256,7 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
                         </div>
                         {expense.receiptDataUri && (
                             <Button variant="outline" size="sm" asChild>
-                                <a href={expense.receiptDataUri} target="_blank" rel="noopener noreferrer">
+                                <a href={expense.receiptDataUri} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
                                     <Receipt className="mr-2 h-4 w-4" />
                                     View Receipt
                                 </a>
