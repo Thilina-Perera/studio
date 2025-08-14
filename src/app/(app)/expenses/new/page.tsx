@@ -40,7 +40,7 @@ import { db, storage } from '@/lib/firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, FileUp } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 
 const formSchema = z.object({
   clubId: z.string().min(1, 'Please select a club.'),
