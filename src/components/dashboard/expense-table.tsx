@@ -97,14 +97,19 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
       setComment('');
     } else {
       const expense = expenses.find(e => e.id === expenseId);
-      // DEBUG: Log the data URI when the row is expanded
-      if (expense) {
-        console.log("Receipt Data URI:", expense.receiptDataUri);
-      }
       setExpandedId(expenseId);
       setComment(currentComment || '');
     }
   };
+
+  const handleViewReceipt = (e: React.MouseEvent, dataUri: string) => {
+    e.stopPropagation(); // Prevent the row's onClick from firing
+    const newWindow = window.open();
+    if (newWindow) {
+      newWindow.document.write(`<img src="${dataUri}" style="max-width: 100%;">`);
+      newWindow.document.title = "View Receipt";
+    }
+  }
 
   const handleCommentSubmit = async (expenseId: string) => {
     if (!comment) {
@@ -255,11 +260,9 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
                         )}
                         </div>
                         {expense.receiptDataUri && (
-                            <Button variant="outline" size="sm" asChild>
-                                <a href={expense.receiptDataUri} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-                                    <Receipt className="mr-2 h-4 w-4" />
-                                    View Receipt
-                                </a>
+                            <Button variant="outline" size="sm" onClick={(e) => handleViewReceipt(e, expense.receiptDataUri!)}>
+                                <Receipt className="mr-2 h-4 w-4" />
+                                View Receipt
                             </Button>
                         )}
                      </div>
