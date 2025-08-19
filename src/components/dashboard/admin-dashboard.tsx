@@ -21,10 +21,6 @@ import { DateRange } from 'react-day-picker';
 import type { Club, Expense } from '@/lib/types';
 import { AiExpensePrioritization } from './ai-expense-prioritization';
 import { useUser } from '@/hooks/use-user';
-import { Button } from '../ui/button';
-import { FileDown } from 'lucide-react';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import { ExpenseReportPDF } from './expense-report-pdf';
 
 interface AdminDashboardProps {
   allExpenses: Expense[];
@@ -37,11 +33,6 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
   const [dateFilter, setDateFilter] = useState<DateRange | undefined>();
   const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>([]);
   const { users } = useUser();
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   useEffect(() => {
     let expenses = allExpenses;
@@ -86,26 +77,11 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
       <AiExpensePrioritization expenses={allExpenses} clubs={allClubs} />
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>All Expenses</CardTitle>
-            <CardDescription>
-              Browse and manage all submitted expenses.
-            </CardDescription>
-          </div>
-          {isClient && (
-            <PDFDownloadLink
-              document={<ExpenseReportPDF expenses={filteredExpenses} clubs={allClubs} users={users} />}
-              fileName={`expense-report-${new Date().toISOString().split('T')[0]}.pdf`}
-            >
-              {({ loading }) => (
-                <Button variant="outline" disabled={loading}>
-                  <FileDown className="mr-2 h-4 w-4" />
-                  {loading ? 'Generating PDF...' : 'Export to PDF'}
-                </Button>
-              )}
-            </PDFDownloadLink>
-          )}
+        <CardHeader>
+          <CardTitle>All Expenses</CardTitle>
+          <CardDescription>
+            Browse and manage all submitted expenses.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-2">
