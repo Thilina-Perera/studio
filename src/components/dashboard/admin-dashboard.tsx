@@ -1,5 +1,5 @@
 'use client';
-import React, 'useState', 'useEffect';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
