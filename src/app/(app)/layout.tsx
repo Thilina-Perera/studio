@@ -1,4 +1,5 @@
 'use client';
+
 import { AppSidebar } from '@/components/shared/app-sidebar';
 import { AppHeader } from '@/components/shared/header';
 import {
@@ -10,6 +11,7 @@ import { useUser } from '@/hooks/use-user';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FirebaseProvider } from '@/hooks/use-firebase'; // ✅ import provider
 
 function AppLayoutSkeleton() {
   return (
@@ -75,5 +77,9 @@ function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  return <AuthenticatedLayout>{children}</AuthenticatedLayout>;
+  return (
+    <FirebaseProvider>   {/* ✅ wrap everything in FirebaseProvider */}
+      <AuthenticatedLayout>{children}</AuthenticatedLayout>
+    </FirebaseProvider>
+  );
 }

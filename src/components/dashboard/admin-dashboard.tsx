@@ -19,6 +19,8 @@ import {
 import { DateRangePicker } from '../ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import type { Club, Expense } from '@/lib/types';
+import Link from 'next/link';
+import { Button } from '../ui/button';
 import { AiExpensePrioritization } from './ai-expense-prioritization';
 import { useUser } from '@/hooks/use-user';
 
@@ -67,11 +69,16 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-        <p className="text-muted-foreground">
-          Review, approve, and manage all club expenses.
-        </p>
+        <div className="flex items-center space-x-4">
+          <p className="text-muted-foreground">
+            Review, approve, and manage all club expenses.
+          </p>
+          <Button asChild>
+            <Link href="/reports">View Reports</Link>
+          </Button>
+        </div>
       </div>
 
       <AiExpensePrioritization expenses={allExpenses} clubs={allClubs} />

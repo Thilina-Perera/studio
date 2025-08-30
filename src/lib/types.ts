@@ -24,6 +24,8 @@ export interface Expense {
   description: string;
   amount: number;
   status: ExpenseStatus;
+  date: string; // Added date property
+  category: string; // Added category property
   submittedDate: string;
   receiptUrl?: string;
   submitterId: string;

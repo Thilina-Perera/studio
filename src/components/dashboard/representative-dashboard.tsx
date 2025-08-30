@@ -36,15 +36,22 @@ export function RepresentativeDashboard({ allClubs, allExpenses }: Representativ
 
   return (
     <div className="space-y-8">
+      {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">
-          Welcome, {user!.name}
-        </h1>
-        <p className="text-muted-foreground">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold tracking-tight">
+            Welcome, {user!.name}
+          </h1>
+          <Button asChild>
+            <Link href="/reports">View Reports</Link>
+          </Button>
+        </div>
+        <p className="text-muted-foreground -mt-6">
           Here's an overview of your club's financial activities.
         </p>
       </div>
 
+      {/* Stats cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -55,6 +62,7 @@ export function RepresentativeDashboard({ allClubs, allExpenses }: Representativ
             <div className="text-2xl font-bold">{totalExpenses}</div>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending Amount</CardTitle>
@@ -64,6 +72,7 @@ export function RepresentativeDashboard({ allClubs, allExpenses }: Representativ
             <div className="text-2xl font-bold">${pendingAmount.toFixed(2)}</div>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Your Clubs</CardTitle>
@@ -80,6 +89,7 @@ export function RepresentativeDashboard({ allClubs, allExpenses }: Representativ
         </Card>
       </div>
 
+      {/* Recent Expenses */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
@@ -93,7 +103,11 @@ export function RepresentativeDashboard({ allClubs, allExpenses }: Representativ
           </Button>
         </CardHeader>
         <CardContent>
-          <ExpenseTable expenses={userExpenses.slice(0, 5)} clubs={allClubs} users={users}/>
+          <ExpenseTable
+            expenses={userExpenses.slice(0, 5)}
+            clubs={allClubs}
+            users={users}
+          />
         </CardContent>
       </Card>
     </div>
