@@ -37,6 +37,7 @@ import type { Expense } from '@/lib/types';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useNotifications } from '@/hooks/use-notifications';
 
 const formSchema = z.object({
   clubId: z.string().min(1, 'Please select a club.'),
@@ -46,6 +47,8 @@ const formSchema = z.object({
   amount: z.coerce
     .number()
     .positive('Amount must be a positive number.'),
+  date: z.string().min(1, 'Please select a date.'),
+  category: z.string().min(1, 'Please select a category.'),
   receipt: z.any().optional(),
 });
 
@@ -83,9 +86,10 @@ function NewExpensePageSkeleton() {
 
 
 export default function NewExpensePage() {
-  const { user, role, clubs, loading } = useUser();
+  const { user, role, clubs, users, loading } = useUser();
   const { toast } = useToast();
   const router = useRouter();
+  const { createNotification } = useNotifications();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -93,11 +97,12 @@ export default function NewExpensePage() {
       clubId: '',
       description: '',
       amount: '' as any,
+      date: '',
+      category: '',
       receipt: undefined,
     },
   });
     
-  // Representatives can submit for their clubs, students can submit for any club.
   const availableClubs = role === 'representative' 
     ? clubs.filter((club) => club.representativeId === user?.id)
     : clubs;
@@ -122,15 +127,31 @@ export default function NewExpensePage() {
             submittedDate: new Date().toISOString(),
             submitterId: user.id,
             submitterName: user.name,
+            date: values.date,
+            category: values.category,
         };
         await addDoc(collection(db, 'expenses'), newExpense);
         
+        await createNotification(
+            user.id,
+            'Expense Submitted',
+            `Your expense "${values.description}" has been submitted for review.`
+        );
+
+        const adminUsers = users.filter(u => u.role === 'admin');
+        for (const admin of adminUsers) {
+            await createNotification(
+                admin.id,
+                'New Expense Submission',
+                `A new expense has been submitted by ${user.name} for ${selectedClub?.name}.`
+            );
+        }
+
         toast({
             title: "Expense Submitted!",
             description: "Your expense has been successfully submitted for review.",
         })
         router.push('/dashboard');
-        // Ideally, we'd refetch the data or update the state locally
         router.refresh();
     } catch (error) {
         console.error("Error submitting expense: ", error);
@@ -178,6 +199,46 @@ export default function NewExpensePage() {
                           {club.name}
                         </SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Date of Expense</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="food">Food & Drinks</SelectItem>
+                      <SelectItem value="supplies">Supplies & Materials</SelectItem>
+                      <SelectItem value="transport">Transportation</SelectItem>
+                      <SelectItem value="venue">Venue & Equipment Rental</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
