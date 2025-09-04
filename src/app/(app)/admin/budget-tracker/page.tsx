@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useMemo } from 'react';
 import {
@@ -32,6 +33,9 @@ function AiRecommendations({ chartData }: { chartData: any[] }) {
     setRecommendations('');
     try {
       const result = await getBudgetRecommendations(chartData.map(d => ({ clubName: d.club, totalSpent: d.total })));
+      if (!result) {
+        throw new Error("The AI returned an empty response. Please try again.");
+      }
       setRecommendations(result);
     } catch (e: any) {
       console.error("Error getting recommendations:", e);

@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -35,20 +36,25 @@ const prompt = ai.definePrompt({
   prompt: `You are a financial advisor for a university student organization. Your task is to analyze the spending of various student clubs and provide actionable recommendations.
 
 Analyze the following club spending data:
+{{#if this}}
 {{#each this}}
 - Club: {{clubName}}, Total Spent: \${{totalSpent}}
 {{/each}}
+{{else}}
+- No spending data available.
+{{/if}}
 
 Based on this data, provide a concise report in Markdown format with the following sections:
 
 ### Spending Analysis
-Briefly summarize the spending patterns. Identify the highest-spending clubs and any potential outliers.
+Briefly summarize the spending patterns. Identify the highest-spending clubs. If there is little or no data, state that a meaningful analysis cannot be performed yet.
 
 ### Recommendations
-Provide 2-3 specific, actionable recommendations. These could include suggestions for cost-cutting, ideas for fundraising for high-spending clubs, or reallocating budget from lower-spending clubs. Frame your advice constructively to help the clubs succeed financially.
+Provide 2-3 specific, actionable recommendations. If spending is high, suggest cost-cutting or fundraising. If spending is low, suggest ways to utilize the budget. If there is no spending, recommend that clubs start submitting expenses.
 
-### Profitability Insights
-Based on the provided spending data, comment on which clubs might be operating efficiently and which might need financial strategy support. Since revenue data is not provided, frame this as an analysis of spending efficiency.`,
+### Financial Health Snapshot
+Comment on the spending efficiency. Which clubs seem to be managing their funds effectively? Which might need support? If data is insufficient, mention that.
+`,
 });
 
 const budgetRecommendationFlow = ai.defineFlow(
@@ -62,13 +68,13 @@ const budgetRecommendationFlow = ai.defineFlow(
     const activeClubs = input.filter(club => club.totalSpent > 0);
     
     if (activeClubs.length === 0) {
-        return "There is no spending data to analyze. Please check back when clubs have approved expenses.";
+        return "### No Spending Data\n\nThere is no approved spending data to analyze. Please check back when clubs have approved expenses to get AI recommendations.";
     }
 
     const { output } = await prompt(activeClubs);
 
     if (!output) {
-      return "The AI analysis returned an empty result. This can happen if there isn't enough data to analyze. Please try again later when more expenses have been approved.";
+      return "The AI analysis returned an empty result. This can happen if there isn't enough data to analyze or due to a temporary issue. Please try again later when more expenses have been approved.";
     }
     
     return output;
