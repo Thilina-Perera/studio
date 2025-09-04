@@ -1,46 +1,67 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isUser(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
     
-    // Helper function to check if a user is an admin
-    function isAdmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    function getUserData(userId) {
+        return get(/databases/$(database)/documents/users/$(userId)).data;
     }
 
-    // Helper function to check if a user is a representative of a specific club
-    function isRepresentative(clubId) {
-      return get(/databases/$(database)/documents/clubs/$(clubId)).data.representativeId == request.auth.uid;
+    function isRole(role) {
+      return isSignedIn() && getUserData(request.auth.uid).role == role;
     }
 
-    // Users can read their own data, admins can read any.
+    function isClubRepresentative(clubId) {
+        return isSignedIn() && get(/databases/$(database)/documents/clubs/$(clubId)).data.representativeId == request.auth.uid;
+    }
+
+    // USERS
+    // Allow users to read all user and club data (for display purposes)
+    // Allow users to update only their own document
     match /users/{userId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth.uid == userId || isAdmin();
+      allow read: if isSignedIn();
+      allow create, update: if isUser(userId);
+    }
+
+    // CLUBS
+    // Allow authenticated users to read all clubs
+    // Allow authenticated users to create new clubs
+    match /clubs/{clubId} {
+      allow read, create: if isSignedIn();
+      allow update: if isClubRepresentative(clubId) || isRole('admin');
+    }
+
+    // EXPENSES
+    // Allow users to create expenses
+    // Allow submitter, club rep, or admin to read
+    // Allow submitter to update pending expenses, and admin to update any
+    match /expenses/{expenseId} {
+      allow create: if isSignedIn();
+      allow read: if isSignedIn() && 
+                    (resource.data.submitterId == request.auth.uid || 
+                     isClubRepresentative(resource.data.clubId) || 
+                     isRole('admin'));
+      allow update: if isSignedIn() &&
+                     (isRole('admin') || 
+                      (isUser(resource.data.submitterId) && resource.data.status == 'Pending'));
     }
     
-    // Clubs can be read by any authenticated user, but only created/updated by admins or the assigned representative.
-    match /clubs/{clubId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null; // Anyone can register a club
-      allow update, delete: if isAdmin() || isRepresentative(clubId);
-    }
-
-    // Expenses can be created by any authenticated user.
-    // They can only be read/updated by the submitter, the club rep, or an admin.
-    match /expenses/{expenseId} {
-      allow create: if request.auth != null;
-      allow read, update: if request.auth.uid == resource.data.submitterId || 
-                              isRepresentative(resource.data.clubId) || 
-                              isAdmin();
-      allow delete: if isAdmin();
-    }
-
-    // Representative requests can be created by any authenticated user.
-    // They can only be read/updated by the user who made the request or an admin.
+    // REPRESENTATIVE REQUESTS
+    // Allow users to create requests
+    // Allow admin to read/update all requests
     match /representativeRequests/{requestId} {
-       allow create: if request.auth != null;
-       allow read, update, delete: if request.auth.uid == resource.data.userId || isAdmin();
+        allow create: if isSignedIn();
+        allow read, update: if isRole('admin');
     }
   }
 }
