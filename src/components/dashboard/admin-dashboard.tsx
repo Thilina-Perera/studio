@@ -21,6 +21,7 @@ import { DateRange } from 'react-day-picker';
 import type { Club, Expense } from '@/lib/types';
 import { AiExpensePrioritization } from './ai-expense-prioritization';
 import { useUser } from '@/hooks/use-user';
+import { ExpenseReportDialog } from './expense-report-dialog';
 
 interface AdminDashboardProps {
   allExpenses: Expense[];
@@ -72,6 +73,10 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
         <p className="text-muted-foreground">
           Review, approve, and manage all club expenses.
         </p>
+      </div>
+      
+      <div className="flex justify-end">
+        <ExpenseReportDialog expenses={filteredExpenses} clubs={allClubs} users={users} />
       </div>
 
       <AiExpensePrioritization expenses={allExpenses} clubs={allClubs} />
