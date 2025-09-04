@@ -9,6 +9,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
+    Table,
+    TableHeader,
+    TableRow,
+    TableHead,
+    TableBody,
+    TableCell,
+  } from '@/components/ui/table';
+import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
@@ -19,7 +27,7 @@ import { Bar, BarChart, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { useUser } from '@/hooks/use-user';
 import { getBudgetRecommendations } from '@/ai/flows/budget-recommendations';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, Sparkles } from 'lucide-react';
+import { AlertTriangle, DollarSign, PieChart, Sparkles, Users } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 function AiRecommendations({ chartData }: { chartData: any[] }) {
@@ -34,7 +42,7 @@ function AiRecommendations({ chartData }: { chartData: any[] }) {
     try {
       const result = await getBudgetRecommendations(chartData.map(d => ({ clubName: d.club, totalSpent: d.total })));
       if (!result) {
-        throw new Error("The AI returned an empty response. Please try again.");
+        throw new Error("The AI returned an empty response. Please try again when more data is available.");
       }
       setRecommendations(result);
     } catch (e: any) {
@@ -55,7 +63,7 @@ function AiRecommendations({ chartData }: { chartData: any[] }) {
             </CardDescription>
         </div>
         <Button onClick={handleGetRecommendations} disabled={loading}>
-          {loading ? 'Analyzing...' : <><Sparkles className="mr-2 h-4 w-4" /> Get AI Recommendations</>}
+          {loading ? 'Analyzing...' : <><Sparkles className="mr-2 h-4 w-4" /> Get AI Insights</>}
         </Button>
       </CardHeader>
       <CardContent>
@@ -98,10 +106,14 @@ function AiRecommendations({ chartData }: { chartData: any[] }) {
 export default function BudgetTrackerPage() {
   const { clubs, expenses, loading } = useUser();
 
-  const chartData = useMemo(() => {
-    return clubs.map((club) => {
-      const clubExpenses = expenses.filter(
-        (expense) => expense.clubId === club.id && expense.status === 'Approved'
+  const approvedExpenses = useMemo(() => {
+    return expenses.filter(expense => expense.status === 'Approved');
+  }, [expenses]);
+
+  const { chartData, totalSpending, activeClubsCount, averageExpense } = useMemo(() => {
+    const data = clubs.map((club) => {
+      const clubExpenses = approvedExpenses.filter(
+        (expense) => expense.clubId === club.id
       );
       const totalAmount = clubExpenses.reduce(
         (sum, expense) => sum + expense.amount,
@@ -110,9 +122,23 @@ export default function BudgetTrackerPage() {
       return {
         club: club.name,
         total: totalAmount,
+        expenseCount: clubExpenses.length,
+        average: clubExpenses.length > 0 ? totalAmount / clubExpenses.length : 0,
       };
     }).sort((a,b) => b.total - a.total);
-  }, [clubs, expenses]);
+
+    const total = data.reduce((sum, item) => sum + item.total, 0);
+    const activeClubs = data.filter(item => item.total > 0).length;
+    const totalExpenseCount = approvedExpenses.length;
+    const avg = totalExpenseCount > 0 ? total / totalExpenseCount : 0;
+
+    return {
+        chartData: data,
+        totalSpending: total,
+        activeClubsCount: activeClubs,
+        averageExpense: avg,
+    }
+  }, [clubs, approvedExpenses]);
 
 
   const chartConfig = {
@@ -131,6 +157,37 @@ export default function BudgetTrackerPage() {
          </p>
        </div>
 
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+             <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Approved Spending</CardTitle>
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">${totalSpending.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Active Clubs</CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{activeClubsCount} / {clubs.length}</div>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Average Expense</CardTitle>
+                    <PieChart className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">${averageExpense.toFixed(2)}</div>
+                </CardContent>
+            </Card>
+        </div>
+
+
       <Card>
         <CardHeader>
           <CardTitle>Club Spending Overview</CardTitle>
@@ -143,7 +200,7 @@ export default function BudgetTrackerPage() {
             <div className="flex items-center justify-center min-h-[300px]">
                 <p>Loading chart data...</p>
             </div>
-          ) : chartData.length > 0 ? (
+          ) : chartData.length > 0 && approvedExpenses.length > 0 ? (
             <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
               <BarChart data={chartData} accessibilityLayer>
                 <CartesianGrid vertical={false} />
@@ -173,7 +230,39 @@ export default function BudgetTrackerPage() {
         </CardContent>
       </Card>
       
-      <AiRecommendations chartData={chartData} />
+      <div className="grid gap-8 lg:grid-cols-2">
+        <Card>
+            <CardHeader>
+                <CardTitle>Club Expense Breakdown</CardTitle>
+                <CardDescription>
+                    A detailed breakdown of spending by club.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                        <TableHead>Club</TableHead>
+                        <TableHead className="text-right">Total Spent</TableHead>
+                        <TableHead className="text-right"># of Expenses</TableHead>
+                        <TableHead className="text-right">Avg. Expense</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {chartData.map((data) => (
+                            <TableRow key={data.club}>
+                                <TableCell className="font-medium">{data.club}</TableCell>
+                                <TableCell className="text-right">${data.total.toFixed(2)}</TableCell>
+                                <TableCell className="text-right">{data.expenseCount}</TableCell>
+                                <TableCell className="text-right">${data.average.toFixed(2)}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+        <AiRecommendations chartData={chartData} />
+      </div>
 
     </div>
   );
