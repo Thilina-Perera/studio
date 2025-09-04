@@ -3,77 +3,55 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper functions
-    function isSignedIn() {
+  
+    // Helper functions to check user roles
+    function isAuthenticated() {
       return request.auth != null;
     }
-
-    function isUser(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+    
+    function isAdmin() {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    function getUserRole(userId) {
-      return get(/databases/$(database)/documents/users/$(userId)).data.role;
+    function isRepresentative(clubId) {
+      return isAuthenticated() && get(/databases/$(database)/documents/clubs/$(clubId)).data.representativeId == request.auth.uid;
     }
     
-    function isClubRepresentative(clubId, userId) {
-      return get(/databases/$(database)/documents/clubs/$(clubId)).data.representativeId == userId;
+    function isOwner(userId) {
+      return request.auth.uid == userId;
     }
 
-    // Users Collection
+    // Rules for the 'users' collection
     match /users/{userId} {
-      // Anyone authenticated can see the list of users (for names, etc.)
-      allow read: if isSignedIn();
-      // A user can create their own document or an admin can create one
-      allow create: if isUser(userId) || getUserRole(request.auth.uid) == 'admin';
-      // A user can only update their own document, or an admin can
-      allow update: if isUser(userId) || getUserRole(request.auth.uid) == 'admin';
+      // Anyone authenticated can read user data (needed for names, etc.)
+      // Only the user themselves or an admin can update their own profile
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) || isAdmin();
     }
 
-    // Clubs Collection
+    // Rules for the 'clubs' collection
     match /clubs/{clubId} {
-      // Any signed-in user can view club details
-      allow read: if isSignedIn();
-      // Any signed-in user can register a new club
-      allow create: if isSignedIn();
-      // Only the club representative or an admin can update club info
-      allow update: if isSignedIn() && (isClubRepresentative(clubId, request.auth.uid) || getUserRole(request.auth.uid) == 'admin');
+      // Anyone authenticated can read club data
+      // Only an admin or a representative of that club can update it. Anyone can create.
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAdmin() || isRepresentative(clubId);
+      allow delete: if isAdmin();
     }
 
-    // Expenses Collection
+    // Rules for the 'expenses' collection
     match /expenses/{expenseId} {
-      // Allow read access if:
-      // 1. You are the submitter of the expense.
-      // 2. You are the representative of the club the expense is for.
-      // 3. You are an admin.
-      allow read: if isSignedIn() && 
-                    (resource.data.submitterId == request.auth.uid || 
-                     isClubRepresentative(resource.data.clubId, request.auth.uid) || 
-                     getUserRole(request.auth.uid) == 'admin');
-                     
-      // Allow create if the user is authenticated and is the one submitting.
-      allow create: if isSignedIn() && request.resource.data.submitterId == request.auth.uid;
-      
-      // Allow update if:
-      // 1. You are the submitter (can only edit their own, e.g., withdraw)
-      // 2. You are the representative for the club (e.g., to flag it)
-      // 3. You are an admin (to change status, add comments)
-      allow update: if isSignedIn() &&
-                     (resource.data.submitterId == request.auth.uid ||
-                      isClubRepresentative(resource.data.clubId, request.auth.uid) ||
-                      getUserRole(request.auth.uid) == 'admin');
+      allow read: if isAdmin() || isRepresentative(request.resource.data.clubId) || isOwner(request.resource.data.submitterId);
+      allow create: if isAuthenticated();
+      allow update: if isAdmin() || isRepresentative(request.resource.data.clubId) || isOwner(request.resource.data.submitterId);
+      allow delete: if isAdmin();
     }
     
-    // Representative Requests Collection
+    // Rules for 'representativeRequests'
     match /representativeRequests/{requestId} {
-        // User can read their own request
-        // Admins can read all requests
-        allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || getUserRole(request.auth.uid) == 'admin');
-        // Users can create their own requests
-        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-        // Admins can update any request (to approve/reject)
-        allow update: if isSignedIn() && getUserRole(request.auth.uid) == 'admin';
+       allow read: if isAuthenticated();
+       allow create: if isAuthenticated();
+       allow update, delete: if isAdmin();
     }
   }
 }
