@@ -21,3 +21,4 @@ firebase deploy --only firestore:rules
 ```
 
 After deploying, you can rename `firestore.rules.secure` to `firestore.rules` if you wish to keep your project tidy.
+
