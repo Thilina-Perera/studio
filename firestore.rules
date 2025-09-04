@@ -2,50 +2,13 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper functions
-    function isSignedIn() {
-      return request.auth != null;
-    }
 
-    function isUser(userId) {
-      return request.auth.uid == userId;
-    }
-
-    function getUserData(userId) {
-      return get(/databases/$(database)/documents/users/$(userId)).data;
-    }
-
-    function isRole(role) {
-      return isSignedIn() && getUserData(request.auth.uid).role == role;
-    }
-    
-    function isClubRepresentative(clubId) {
-        return isSignedIn() && get(/databases/$(database)/documents/clubs/$(clubId)).data.representativeId == request.auth.uid;
-    }
-
-    // Rules for the 'users' collection
-    match /users/{userId} {
-      allow read: if isSignedIn();
-      allow write: if isUser(userId);
-    }
-
-    // Rules for the 'clubs' collection
-    match /clubs/{clubId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn();
-      allow update: if isRole('admin') || isClubRepresentative(clubId);
-    }
-
-    // Rules for the 'expenses' collection
-    match /expenses/{expenseId} {
-      allow create: if isSignedIn();
-      allow read, update, delete: if isRole('admin') || isClubRepresentative(resource.data.clubId) || isUser(resource.data.submitterId);
-    }
-
-    // Rules for representative requests
-    match /representativeRequests/{requestId} {
-      allow create: if isSignedIn();
-      allow read, update, delete: if isRole('admin') || isUser(resource.data.userId);
+    // WARNING: These are temporary, insecure rules for development.
+    // They allow any logged-in user to read and write all data.
+    // Before deploying to production, you MUST deploy the secure,
+    // role-based rules. See README.md for instructions.
+    match /{document=**} {
+      allow read, write: if request.auth != null;
     }
   }
 }
