@@ -1,67 +1,11 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Helper functions
-    function isUserAuthenticated() {
-      return request.auth != null;
-    }
-
-    function isUser(userId) {
-      return isUserAuthenticated() && request.auth.uid == userId;
-    }
-    
-    function getUserRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
-    }
-    
-    function isUserRole(role) {
-        return isUserAuthenticated() && getUserRole() == role;
-    }
-
-    // Admins can do anything
+    // WARNING: These rules are insecure and are meant for development only.
+    // They allow any authenticated user to read and write all data.
+    // You MUST deploy the secure rules before going to production.
     match /{document=**} {
-      allow read, write: if isUserRole('admin');
-    }
-
-    // Users collection
-    match /users/{userId} {
-      // Any authenticated user can see the list of users (for names, etc.)
-      allow list: if isUserAuthenticated();
-      // Only the user themselves can read their full document or update it.
-      // Anyone can create a user document during signup.
-      allow read, update: if isUser(userId);
-      allow create: if isUserAuthenticated();
-    }
-    
-    // Clubs collection
-    match /clubs/{clubId} {
-      // Any authenticated user can view club information.
-      allow read: if isUserAuthenticated();
-      // Any authenticated user can create a club (they become rep by default).
-      allow create: if isUserAuthenticated();
-      // Only the club representative can update club details.
-      allow update: if isUserAuthenticated() && get(/databases/$(database)/documents/clubs/$(clubId)).data.representativeId == request.auth.uid;
-    }
-    
-    // Expenses collection
-    match /expenses/{expenseId} {
-      // Any authenticated user can create an expense.
-      allow create: if isUserAuthenticated();
-      // Users can read/update their own expenses.
-      // Representatives can read expenses for their clubs.
-      allow read, update: if isUserAuthenticated() && 
-                            (resource.data.submitterId == request.auth.uid ||
-                             get(/databases/$(database)/documents/clubs/$(resource.data.clubId)).data.representativeId == request.auth.uid);
-    }
-    
-    // Representative Requests
-    match /representativeRequests/{requestId} {
-      // Any authenticated user can create a request.
-      allow create: if isUserAuthenticated();
-      // Users can read their own requests.
-      allow read: if isUserAuthenticated() && resource.data.userId == request.auth.uid;
+      allow read, write: if request.auth != null;
     }
   }
 }
