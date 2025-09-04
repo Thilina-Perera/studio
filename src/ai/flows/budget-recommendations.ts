@@ -60,10 +60,17 @@ const budgetRecommendationFlow = ai.defineFlow(
   async (input) => {
     // Filter out clubs with zero spending to provide more meaningful analysis
     const activeClubs = input.filter(club => club.totalSpent > 0);
+    
     if (activeClubs.length === 0) {
         return "There is no spending data to analyze. Please check back when clubs have approved expenses.";
     }
+
     const { output } = await prompt(activeClubs);
-    return output!;
+
+    if (!output) {
+      return "The AI analysis returned an empty result. This can happen if there isn't enough data to analyze. Please try again later when more expenses have been approved.";
+    }
+    
+    return output;
   }
 );
