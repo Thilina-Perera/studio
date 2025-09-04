@@ -1,67 +1,51 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
     // Helper functions
     function isSignedIn() {
       return request.auth != null;
     }
 
     function isUser(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+      return request.auth.uid == userId;
     }
-    
+
     function getUserData(userId) {
-        return get(/databases/$(database)/documents/users/$(userId)).data;
+      return get(/databases/$(database)/documents/users/$(userId)).data;
     }
 
     function isRole(role) {
       return isSignedIn() && getUserData(request.auth.uid).role == role;
     }
-
+    
     function isClubRepresentative(clubId) {
         return isSignedIn() && get(/databases/$(database)/documents/clubs/$(clubId)).data.representativeId == request.auth.uid;
     }
 
-    // USERS
-    // Allow users to read all user and club data (for display purposes)
-    // Allow users to update only their own document
+    // Rules for the 'users' collection
     match /users/{userId} {
       allow read: if isSignedIn();
-      allow create, update: if isUser(userId);
+      allow write: if isUser(userId);
     }
 
-    // CLUBS
-    // Allow authenticated users to read all clubs
-    // Allow authenticated users to create new clubs
+    // Rules for the 'clubs' collection
     match /clubs/{clubId} {
-      allow read, create: if isSignedIn();
-      allow update: if isClubRepresentative(clubId) || isRole('admin');
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isRole('admin') || isClubRepresentative(clubId);
     }
 
-    // EXPENSES
-    // Allow users to create expenses
-    // Allow submitter, club rep, or admin to read
-    // Allow submitter to update pending expenses, and admin to update any
+    // Rules for the 'expenses' collection
     match /expenses/{expenseId} {
       allow create: if isSignedIn();
-      allow read: if isSignedIn() && 
-                    (resource.data.submitterId == request.auth.uid || 
-                     isClubRepresentative(resource.data.clubId) || 
-                     isRole('admin'));
-      allow update: if isSignedIn() &&
-                     (isRole('admin') || 
-                      (isUser(resource.data.submitterId) && resource.data.status == 'Pending'));
+      allow read, update, delete: if isRole('admin') || isClubRepresentative(resource.data.clubId) || isUser(resource.data.submitterId);
     }
-    
-    // REPRESENTATIVE REQUESTS
-    // Allow users to create requests
-    // Allow admin to read/update all requests
+
+    // Rules for representative requests
     match /representativeRequests/{requestId} {
-        allow create: if isSignedIn();
-        allow read, update: if isRole('admin');
+      allow create: if isSignedIn();
+      allow read, update, delete: if isRole('admin') || isUser(resource.data.userId);
     }
   }
 }
