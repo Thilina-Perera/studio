@@ -19,13 +19,15 @@ import { Button } from '@/components/ui/button';
 import { useUser } from '@/hooks/use-user';
 import type { RepresentativeRequest } from '@/lib/types';
 import { db } from '@/lib/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { useNotifications } from '@/hooks/use-notifications';
 
 export default function AdminRequestsPage() {
   const { representativeRequests, loading } = useUser();
   const { toast } = useToast();
+  const { createNotification } = useNotifications();
 
   const handleRequest = async (
     request: RepresentativeRequest,
@@ -40,6 +42,12 @@ export default function AdminRequestsPage() {
       }
 
       await updateDoc(requestRef, { status: newStatus });
+
+      await createNotification(
+        request.userId,
+        'Request to be Representative',
+        `Your request to become a representative for ${request.clubName} has been ${newStatus}.`
+      );
 
       toast({
         title: 'Request Updated',

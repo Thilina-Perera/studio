@@ -1,4 +1,3 @@
-
 'use client';
 import React from 'react';
 import {
@@ -14,19 +13,21 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Flag, MoreHorizontal, Receipt } from 'lucide-react';
 import type { Club, Expense, ExpenseStatus, User } from '@/lib/types';
 import { StatusBadge } from './status-badge';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { useUser } from '@/hooks/use-user';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Textarea } from '../ui/textarea';
+import { useNotifications } from '@/hooks/use-notifications';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { parse } from 'path';
 
 interface ExpenseTableProps {
   expenses: Expense[];
@@ -41,6 +42,7 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
 
   const { role } = useUser();
   const { toast } = useToast();
+  const { createNotification } = useNotifications();
 
   const getClubName = (expense: Expense) => {
     if (expense.clubName) return expense.clubName;
@@ -53,16 +55,21 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
   }
 
   const handleStatusChange = async (
-    expenseId: string,
+    expense: Expense,
     status: ExpenseStatus
   ) => {
-    const expenseRef = doc(db, 'expenses', expenseId);
+    const expenseRef = doc(db, 'expenses', expense.id);
     try {
       await updateDoc(expenseRef, { status });
       toast({
         title: 'Status Updated',
         description: `Expense has been marked as ${status}.`,
       });
+      await createNotification(
+        expense.submitterId,
+        'Expense Status Updated',
+        `Your expense "${expense.description}" has been updated to ${status}."`
+      );
     } catch (error) {
       console.error('Error updating status:', error);
       toast({
@@ -142,9 +149,19 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
     }
   };
 
+  const formatDate = (dateInput: string | undefined | null) => {
+    if (!dateInput) return "N/A";
+    try{
+      const date = parseISO(dateInput);
+      return format(date, 'MMM d, yyyy');
+    } catch (error) {
+      return "Invalid Date";
+    }
+  };
+
   const canPerformActions = role === 'admin' || role === 'representative';
   const showSubmitter = role === 'admin' || role === 'representative';
-  const numColumns = showSubmitter ? (canPerformActions ? 7 : 6) : 5;
+  const numColumns = showSubmitter ? (canPerformActions ? 8 : 7) : 6;
 
   return (
     <div className="rounded-lg border">
@@ -154,6 +171,7 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
             <TableHead>Club</TableHead>
             {showSubmitter && <TableHead>Submitter</TableHead>}
             <TableHead>Description</TableHead>
+            <TableHead>Date</TableHead>
             <TableHead className="text-right">Amount</TableHead>
             <TableHead>Submitted</TableHead>
             <TableHead>Status</TableHead>
@@ -179,15 +197,25 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
                 </TableCell>
                 {showSubmitter && <TableCell>{getSubmitterName(expense)}</TableCell>}
                 <TableCell className="flex items-center gap-2">
-                    {expense.isFlagged && role === 'admin' && <Flag className="h-4 w-4 text-destructive" title="Flagged as fraudulent"/>}
+                {expense.isFlagged && role === 'admin' &&
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Flag className="h-4 w-4 text-destructive" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Flagged as fraudulent</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    }
                     {expense.description}
                 </TableCell>
+                <TableCell>{formatDate(expense.date)}</TableCell>
                 <TableCell className="text-right">
                   ${expense.amount.toFixed(2)}
                 </TableCell>
-                <TableCell>
-                  {format(new Date(expense.submittedDate), 'MMM d, yyyy')}
-                </TableCell>
+                <TableCell>{formatDate(expense.submittedDate)}</TableCell>
                 <TableCell>
                   <StatusBadge status={expense.status} />
                 </TableCell>
@@ -207,27 +235,10 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
                       <DropdownMenuContent align="end">
                         {role === 'admin' && (
                             <>
-                                <DropdownMenuItem
-                                onClick={() =>
-                                    handleStatusChange(expense.id, 'Approved')
-                                }
-                                >
-                                Approve
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                onClick={() =>
-                                    handleStatusChange(expense.id, 'Rejected')
-                                }
-                                >
-                                Reject
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                onClick={() =>
-                                    handleStatusChange(expense.id, 'Under Review')
-                                }
-                                >
-                                Mark as 'Under Review'
-                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleStatusChange(expense, 'Approved')}>Approve</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleStatusChange(expense, 'Rejected')}>Reject</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleStatusChange(expense, 'Under Review')}>Mark as 'Under Review'</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleStatusChange(expense, 'Payment Processed')}>Mark as 'Payment Processed'</DropdownMenuItem>
                             </>
                         )}
                         {role === 'representative' && (
@@ -246,44 +257,41 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
               {expandedId === expense.id && (
                 <TableRow>
                   <TableCell colSpan={numColumns} className="bg-muted/50 p-4 space-y-4">
-                     <div className="flex justify-between items-start">
-                        <div>
-                        {expense.adminComment ? (
-                            <div className="text-sm">
-                                <h4 className="font-semibold mb-1">Admin Comment</h4>
-                                <p className="text-muted-foreground pl-2 border-l-2">
-                                {expense.adminComment}
-                                </p>
-                            </div>
-                        ) : (
-                           <p className="text-sm text-muted-foreground">No admin comments yet.</p>
-                        )}
-                        </div>
-                        {expense.receiptDataUri && (
-                            <Button variant="outline" size="sm" onClick={(e) => handleViewReceipt(e, expense.receiptDataUri!)}>
-                                <Receipt className="mr-2 h-4 w-4" />
-                                View Receipt
+                    <div className="space-y-4">
+                      <div className="text-sm">
+                        <h4 className="font-semibold mb-1">Category</h4>
+                          <p className="text-muted-foreground">
+                            {expense.category || 'N/A'}
+                          </p>
+                      </div>
+
+                      {role === 'admin' ? (
+                          <>
+                            <h4 className="text-sm font-semibold">Review Expense & Add Comment</h4>
+                            <Textarea
+                              id={`comment-${expense.id}`}
+                              placeholder="Leave a comment for the submitter..."
+                              value={comment}
+                              onChange={(e) => setComment(e.target.value)}
+                            />
+                            <Button
+                              size="sm"
+                              onClick={() => handleCommentSubmit(expense.id)}
+                              disabled={isSubmitting}>
+                              {isSubmitting ? 'Submitting...' : 'Submit Comment'}
                             </Button>
+                          </>
+                        ) : (
+                          expense.adminComment && (
+                            <div className="text-sm">
+                              <h4 className="font-semibold mb-1">Admin Comment</h4>
+                              <p className="text-muted-foreground pl-2 border-l-2">
+                                {expense.adminComment}
+                              </p>
+                            </div>
+                          )
                         )}
-                     </div>
-                    {role === 'admin' && (
-                       <div className="space-y-2 pt-4 border-t">
-                        <h4 className="text-sm font-semibold">Review Expense & Add Comment</h4>
-                         <Textarea
-                           id={`comment-${expense.id}`}
-                           placeholder="Leave a comment for the submitter..."
-                           value={comment}
-                           onChange={(e) => setComment(e.target.value)}
-                         />
-                         <Button
-                           size="sm"
-                           onClick={() => handleCommentSubmit(expense.id)}
-                           disabled={isSubmitting}
-                         >
-                           {isSubmitting ? 'Submitting...' : 'Submit Comment'}
-                         </Button>
                        </div>
-                    )}
                   </TableCell>
                 </TableRow>
               )}
