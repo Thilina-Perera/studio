@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -19,32 +18,30 @@ import { cn } from '@/lib/utils';
 import type { Notification } from '@/lib/types';
 
 export function NotificationBell() {
-  const { user, notifications } = useUser();
-  const [isOpen, setIsOpen] = useState(false);
+  const { user, notifications, loading } = useUser();
   const router = useRouter();
-
-  const unreadNotifications = notifications.filter((n) => !n.isRead);
-  const unreadCount = unreadNotifications.length;
 
   const handleMarkAsRead = async (notificationId: string) => {
     try {
       const notifRef = doc(db, 'notifications', notificationId);
       await updateDoc(notifRef, { isRead: true });
     } catch (error) {
-      console.error("Error marking notification as read:", error);
+      console.error('Failed to mark notification as read', error);
     }
   };
-  
-  const handleNotificationClick = async (notification: Notification) => {
-    await handleMarkAsRead(notification.id);
+
+  const handleNotificationClick = (notification: Notification) => {
+    handleMarkAsRead(notification.id);
     router.push(notification.link);
-    setIsOpen(false);
   };
+  
+  const unreadNotifications = notifications.filter(n => !n.isRead);
+  const unreadCount = unreadNotifications.length;
 
   if (!user) return null;
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative rounded-full">
           <Bell className="h-5 w-5" />
@@ -61,31 +58,32 @@ export function NotificationBell() {
           Notifications
         </div>
         <ScrollArea className="h-96">
-            {unreadNotifications.length === 0 ? (
+            {loading ? (
+                <div className="text-center text-muted-foreground p-8">
+                    Loading...
+                </div>
+            ) : unreadNotifications.length === 0 ? (
                 <div className="text-center text-muted-foreground p-8">
                     You have no new notifications.
                 </div>
             ) : (
                 <div className="divide-y">
                     {unreadNotifications.map(notification => (
-                       <a 
-                            key={notification.id}
-                            className="block p-4 hover:bg-muted/50 cursor-pointer" 
-                            onClick={(e) => {
-                                e.preventDefault();
-                                handleNotificationClick(notification);
-                            }}
+                        <div 
+                           key={notification.id} 
+                           className="block p-4 hover:bg-muted/50 cursor-pointer" 
+                           onClick={() => handleNotificationClick(notification)}
                         >
-                            <div className="flex items-start gap-3">
-                                <div className="h-2 w-2 rounded-full bg-primary mt-1.5 flex-shrink-0" />
-                                <div className={cn("flex-1 space-y-1")}>
-                                    <p className="text-sm">{notification.message}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                        {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
-                                    </p>
-                                </div>
-                            </div>
-                        </a>
+                           <div className="flex items-start gap-3">
+                               <div className="h-2 w-2 rounded-full bg-primary mt-1.5 flex-shrink-0" />
+                               <div className={cn("flex-1 space-y-1")}>
+                                   <p className="text-sm">{notification.message}</p>
+                                   <p className="text-xs text-muted-foreground">
+                                       {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                                   </p>
+                               </div>
+                           </div>
+                        </div>
                     ))}
                 </div>
             )}
