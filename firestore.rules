@@ -2,85 +2,72 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
+
     // Helper functions
-    function isUserAuthenticated() {
+    function isAuth() {
       return request.auth != null;
     }
+    
+    function isUser(userId) {
+      return isAuth() && request.auth.uid == userId;
+    }
 
-    function isExistingUser(userId) {
-      return exists(/databases/$(database)/documents/users/$(userId));
+    function isAdmin() {
+      return isAuth() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isRepresentative(clubId) {
+      return isAuth() && get(/databases/$(database)/documents/clubs/$(clubId)).data.representativeId == request.auth.uid;
     }
     
-    function getUserRole(userId) {
-      return get(/databases/$(database)/documents/users/$(userId)).data.role;
+    function getRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
     }
 
-    function isUserAdmin(userId) {
-      return isUserAuthenticated() && isExistingUser(userId) && getUserRole(userId) == 'admin';
-    }
-
-    function isUserRepresentative(userId) {
-      return isUserAuthenticated() && isExistingUser(userId) && (
-        getUserRole(userId) == 'representative' || isUserAdmin(userId)
-      );
-    }
-    
-    // USERS
+    // USERS: Can read their own data, admins can read anyone's data.
     match /users/{userId} {
-      // Any authenticated user can read user data (needed for names, etc.)
-      allow read: if isUserAuthenticated();
-      // Only the user themselves or an admin can update their own data
-      allow write: if isUserAuthenticated() && (request.auth.uid == userId || isUserAdmin(request.auth.uid));
-      // Only admins can create or delete users through the console/backend
-      allow create, delete: if isUserAdmin(request.auth.uid);
+      allow read: if isUser(userId) || isAdmin();
+      allow write: if isUser(userId); // for future profile updates
+      allow create: if isAuth(); // On signup
     }
 
-    // CLUBS
+    // CLUBS: Logged-in users can read clubs. Reps can update their own clubs.
     match /clubs/{clubId} {
-        // Any authenticated user can read club data
-        allow read: if isUserAuthenticated();
-        // Only a representative or admin can create or update a club
-        allow create, update: if isUserRepresentative(request.auth.uid);
-        // Only admins can delete clubs
-        allow delete: if isUserAdmin(request.auth.uid);
+      allow read: if isAuth();
+      allow create: if isAuth(); // Any authenticated user can register a new club
+      allow update: if isRepresentative(clubId) || isAdmin();
     }
 
-    // EXPENSES
+    // EXPENSES: Users can read/create. Reps and Admins can update.
     match /expenses/{expenseId} {
-        // - An admin can read any expense
-        // - A representative can read expenses for their clubs
-        // - A student can read their own submitted expenses
-        allow read: if 
-            isUserAuthenticated() && (
-                isUserAdmin(request.auth.uid) ||
-                (isUserRepresentative(request.auth.uid) && get(/databases/$(database)/documents/clubs/$(resource.data.clubId)).data.representativeId == request.auth.uid) ||
-                resource.data.submitterId == request.auth.uid
-            );
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAdmin() || isRepresentative(resource.data.clubId);
+      allow delete: if isAdmin() || isRepresentative(resource.data.clubId);
+    }
 
-        // Any authenticated user can create an expense
-        allow create: if isUserAuthenticated();
-
-        // - An admin can update any expense
-        // - A representative can update expenses for their clubs
-        // - A student can update their own expense only if status is 'Pending'
-        allow update: if 
-            isUserAuthenticated() && (
-                isUserAdmin(request.auth.uid) ||
-                (isUserRepresentative(request.auth.uid) && get(/databases/$(database)/documents/clubs/$(resource.data.clubId)).data.representativeId == request.auth.uid) ||
-                (resource.data.submitterId == request.auth.uid && resource.data.status == 'Pending')
-            );
-        
-        // Only admins can delete expenses
-        allow delete: if isUserAdmin(request.auth.uid);
+    // REPRESENTATIVE REQUESTS: Users can create their own. Admins can read/update all.
+    match /representativeRequests/{requestId} {
+      allow read: if isAdmin() || isUser(resource.data.userId);
+      allow create: if isUser(request.resource.data.userId);
+      allow update: if isAdmin();
     }
     
-    // REPRESENTATIVE REQUESTS
-    match /representativeRequests/{requestId} {
-        // Users can create their own requests
-        allow create: if isUserAuthenticated() && request.resource.data.userId == request.auth.uid;
-        // Admins can read/write any request
-        allow read, write: if isUserAdmin(request.auth.uid);
+    // NOTIFICATIONS:
+    match /notifications/{notificationId} {
+      // A user can read a notification if it's theirs. Admins can read all.
+      allow read: if isAdmin() || (isAuth() && resource.data.userId == request.auth.uid);
+      
+      // Admins can create notifications for anyone.
+      // Other users can only create notifications destined for an admin's review (e.g. rep request).
+      // Logic for expense status notifications would be triggered by an admin's update action.
+      allow create: if isAdmin() || (isAuth() && request.resource.data.recipientRole == 'admin');
+      
+      // A user can only update their own notifications, and only to mark them as read.
+      allow update: if isAuth() && resource.data.userId == request.auth.uid && request.resource.data.isRead == true && resource.data.isRead == false;
+      
+      // Nobody can delete notifications to maintain a history.
+      allow delete: if false;
     }
   }
 }
