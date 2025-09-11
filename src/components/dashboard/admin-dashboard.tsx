@@ -30,11 +30,15 @@ interface AdminDashboardProps {
   allClubs: Club[];
 }
 
+type SortOption = 'date-desc' | 'date-asc' | 'amount-desc' | 'amount-asc' | 'default';
+
+
 export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
   const [descriptionFilter, setDescriptionFilter] = useState('');
   const [clubFilter, setClubFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState<DateRange | undefined>();
+  const [sortOption, setSortOption] = useState<SortOption>('default');
   const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>([]);
   const { users } = useUser();
 
@@ -63,6 +67,8 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
         const fromDate = new Date(dateFilter.from!);
         const toDate = dateFilter.to ? new Date(dateFilter.to) : new Date();
         if (dateFilter.to) {
+          // Set time to end of day for 'to' date to include all of it
+          toDate.setHours(23, 59, 59, 999);
           return submittedDate >= fromDate && submittedDate <= toDate;
         } else {
           return submittedDate >= fromDate;
@@ -70,8 +76,25 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
       });
     }
 
-    setFilteredExpenses(expenses);
-  }, [descriptionFilter, clubFilter, categoryFilter, dateFilter, allExpenses]);
+    // Sorting logic
+    const sortedExpenses = [...expenses].sort((a, b) => {
+        switch (sortOption) {
+            case 'date-desc':
+                return new Date(b.submittedDate).getTime() - new Date(a.submittedDate).getTime();
+            case 'date-asc':
+                return new Date(a.submittedDate).getTime() - new Date(b.submittedDate).getTime();
+            case 'amount-desc':
+                return b.amount - a.amount;
+            case 'amount-asc':
+                return a.amount - b.amount;
+            default:
+                 // Default sort by date descending
+                return new Date(b.submittedDate).getTime() - new Date(a.submittedDate).getTime();
+        }
+    });
+
+    setFilteredExpenses(sortedExpenses);
+  }, [descriptionFilter, clubFilter, categoryFilter, dateFilter, sortOption, allExpenses]);
 
   return (
     <div className="space-y-8">
@@ -128,6 +151,17 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
                   </SelectItem>
                 ))}
               </SelectContent>
+            </Select>
+            <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
+                <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Sort by..." />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="default">Sort by Date (Newest)</SelectItem>
+                    <SelectItem value="date-asc">Date (Oldest First)</SelectItem>
+                    <SelectItem value="amount-desc">Amount (High to Low)</SelectItem>
+                    <SelectItem value="amount-asc">Amount (Low to High)</SelectItem>
+                </SelectContent>
             </Select>
             <DateRangePicker date={dateFilter} onDateChange={setDateFilter} />
           </div>
