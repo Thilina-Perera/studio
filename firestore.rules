@@ -61,10 +61,10 @@ service cloud.firestore {
     
     // NOTIFICATIONS
     // Read/Update: User can only read/update their own notifications.
-    // Create: Allow creation if the user is signed in and the new notification has a userId.
+    // Create: A user can create a notification for themselves, or an admin can create one for anyone.
     match /notifications/{notificationId} {
       allow read, update: if isSignedIn() && isUser(resource.data.userId);
-      allow create: if isSignedIn() && 'userId' in request.resource.data;
+      allow create: if isSignedIn() && (isUser(request.resource.data.userId) || isAdmin());
       allow delete: if false;
     }
   }
