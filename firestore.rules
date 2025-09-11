@@ -1,4 +1,3 @@
-
 rules_version = '2';
 
 service cloud.firestore {
@@ -46,8 +45,11 @@ service cloud.firestore {
                     (isAdmin() || 
                      isRepresentative(resource.data.clubId) || 
                      isUser(resource.data.submitterId));
-      allow create: if isSignedIn() && request.resource.data.category in ['Food & Beverage', 'Office Supplies', 'Event Materials', 'Travel', 'Other'];
-      allow update: if isSignedIn() && (isAdmin() || (isRepresentative(resource.data.clubId) && request.resource.data.isFlagged == true));
+      allow create: if isSignedIn() && 
+                      (request.resource.data.category in ['Food & Beverage', 'Stationary', 'Event Materials', 'Transport', 'Venue', 'Subscriptions', 'Entertainment', 'Other']);
+      allow update: if isSignedIn() && 
+                      (isAdmin() || (isRepresentative(resource.data.clubId) && request.resource.data.isFlagged == true)) &&
+                      (request.resource.data.category in ['Food & Beverage', 'Stationary', 'Event Materials', 'Transport', 'Venue', 'Subscriptions', 'Entertainment', 'Other']);
     }
     
     // REPRESENTATIVE REQUESTS
@@ -62,13 +64,11 @@ service cloud.firestore {
     
     // NOTIFICATIONS
     // Read/Update: User can only read/update their own notifications.
-    // Create: Any signed-in user can create a notification for another user or themself.
+    // Create: User can create notifications for admins, or admins for users.
     match /notifications/{notificationId} {
       allow read, update: if isSignedIn() && isUser(resource.data.userId);
-      // Allow creation if the creator is an admin OR if they are creating it for themself.
-      // This is still not perfect for student->admin, so we need a more robust rule.
       allow create: if isSignedIn() && 
-                    (isAdmin() || isUser(request.resource.data.userId));
+                      (isUser(request.resource.data.userId) || isAdmin());
       allow delete: if false;
     }
   }
