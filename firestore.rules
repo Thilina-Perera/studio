@@ -3,56 +3,52 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-  
+
     // Helper functions
     function isSignedIn() {
       return request.auth != null;
     }
-    
-    function isUser(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+
+    function isRole(role) {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
     }
 
-    function getRole(userId) {
-        return get(/databases/$(database)/documents/users/$(userId)).data.role;
-    }
-    
-    function isAdmin(userId) {
-        return getRole(userId) == 'admin';
+    function isClubRepresentative(clubId) {
+      return get(/databases/$(database)/documents/clubs/$(clubId)).data.representativeId == request.auth.uid;
     }
 
-    // Allow read-only access to basic app data for signed-in users
+    // Users collection
     match /users/{userId} {
       allow read: if isSignedIn();
-      allow write: if isUser(userId); // Users can update their own profile
+      allow create: if !isSignedIn(); // Allow user creation on signup
+      allow update: if request.auth.uid == userId; // Allow users to update their own profile
     }
 
+    // Clubs collection
     match /clubs/{clubId} {
       allow read: if isSignedIn();
-      allow create, update, delete: if isSignedIn() && isAdmin(request.auth.uid); // Only admins can manage clubs
+      allow create: if isSignedIn(); // Any signed-in user can create a club (and becomes rep)
+      allow update: if isClubRepresentative(clubId) || isRole('admin');
     }
 
+    // Expenses collection
     match /expenses/{expenseId} {
-      allow read, write: if isSignedIn(); // Simplified for now, more granular rules can be added
+      allow read: if isSignedIn(); // Further client-side filtering needed
+      allow create: if isSignedIn();
+      allow update: if isClubRepresentative(resource.data.clubId) || isRole('admin');
     }
 
+    // Representative Requests collection
     match /representativeRequests/{requestId} {
-        allow read, write: if isSignedIn();
+      allow read: if isRole('admin');
+      allow create: if isSignedIn();
+      allow update: if isRole('admin');
     }
     
+    // Notifications collection
     match /notifications/{notificationId} {
-      // Users can read their own notifications
-      allow read: if isSignedIn() && isUser(resource.data.userId);
-      
-      // Users can create notifications for admins. Admins can create for anyone.
-      allow create: if isSignedIn();
-      
-      // Users can only update the `isRead` status of their own notifications.
-      allow update: if isUser(resource.data.userId)
-                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
-
-      // Disallow deleting notifications to maintain a history
-      allow delete: if false;
+      allow read, update: if request.auth.uid == resource.data.userId; // Can only read/update own notifications
+      allow create: if isRole('admin') || request.resource.data.userId == request.auth.uid;
     }
   }
 }
