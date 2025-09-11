@@ -16,31 +16,28 @@ import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { ScrollArea } from '../ui/scroll-area';
 import { cn } from '@/lib/utils';
+import type { Notification } from '@/lib/types';
 
 export function NotificationBell() {
   const { user, notifications } = useUser();
   const [isOpen, setIsOpen] = useState(false);
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const unreadNotifications = notifications.filter((n) => !n.isRead);
+  const unreadCount = unreadNotifications.length;
 
-  const handleOpenChange = async (open: boolean) => {
-    setIsOpen(open);
-    if (open && unreadCount > 0) {
-      // Mark all as read when popover is opened
-      const unreadNotifications = notifications.filter((n) => !n.isRead);
-      await Promise.all(
-        unreadNotifications.map((n) => {
-          const notifRef = doc(db, 'notifications', n.id);
-          return updateDoc(notifRef, { isRead: true });
-        })
-      );
+  const handleMarkAsRead = async (notificationId: string) => {
+    try {
+      const notifRef = doc(db, 'notifications', notificationId);
+      await updateDoc(notifRef, { isRead: true });
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
     }
   };
 
   if (!user) return null;
 
   return (
-    <Popover open={isOpen} onOpenChange={handleOpenChange}>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative rounded-full">
           <Bell className="h-5 w-5" />
@@ -57,20 +54,24 @@ export function NotificationBell() {
           Notifications
         </div>
         <ScrollArea className="h-96">
-            {notifications.length === 0 ? (
+            {unreadNotifications.length === 0 ? (
                 <div className="text-center text-muted-foreground p-8">
-                    You have no notifications.
+                    You have no new notifications.
                 </div>
             ) : (
                 <div className="divide-y">
-                    {notifications.map(notification => (
+                    {unreadNotifications.map(notification => (
                         <Link href={notification.link} key={notification.id} passHref legacyBehavior>
-                           <a className="block p-4 hover:bg-muted/50" onClick={() => setIsOpen(false)}>
+                           <a 
+                                className="block p-4 hover:bg-muted/50" 
+                                onClick={() => {
+                                    handleMarkAsRead(notification.id);
+                                    setIsOpen(false);
+                                }}
+                            >
                                 <div className="flex items-start gap-3">
-                                    {!notification.isRead && (
-                                        <div className="h-2 w-2 rounded-full bg-primary mt-1.5 flex-shrink-0" />
-                                    )}
-                                    <div className={cn("flex-1 space-y-1", notification.isRead && "pl-5")}>
+                                    <div className="h-2 w-2 rounded-full bg-primary mt-1.5 flex-shrink-0" />
+                                    <div className={cn("flex-1 space-y-1")}>
                                         <p className="text-sm">{notification.message}</p>
                                         <p className="text-xs text-muted-foreground">
                                             {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
