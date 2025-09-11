@@ -34,6 +34,8 @@ import { addDoc, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Club, User, RepresentativeRequest } from '@/lib/types';
 import { useRouter } from 'next/navigation';
+import { useNotifications } from '@/hooks/use-notifications';
+import { useUser } from '@/hooks/use-user'; 
 
 const formSchema = z.object({
   clubId: z.string().min(1, 'Please select a club.'),
@@ -48,6 +50,8 @@ export function BecomeRepresentativeDialog({ user, clubs }: BecomeRepresentative
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const { createNotification } = useNotifications();
+  const { users } = useUser();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -78,6 +82,15 @@ export function BecomeRepresentativeDialog({ user, clubs }: BecomeRepresentative
         requestDate: new Date().toISOString(),
       };
       await addDoc(collection(db, 'representativeRequests'), newRequest);
+
+      const adminUsers = users.filter(u => u.role === 'admin');
+      for (const admin of adminUsers){
+        await createNotification(
+          admin.id,
+          'New Representative Request',
+          `${user.name} has requested to become a representative for ${selectedClub.name}.`
+        );
+      }
 
       toast({
         title: 'Request Sent!',

@@ -16,7 +16,7 @@ export interface Club {
   representativeId: string;
 }
 
-export type ExpenseStatus = 'Pending' | 'Under Review' | 'Approved' | 'Rejected';
+export type ExpenseStatus = 'Pending' | 'Under Review' | 'Approved' | 'Rejected' | 'Payment Processed';
 
 export interface Expense {
   id:string;
@@ -26,6 +26,8 @@ export interface Expense {
   amount: number;
   status: ExpenseStatus;
   submittedDate: string;
+  date?: string;
+  category?: string;
   receiptDataUri?: string;
   submitterId: string;
   submitterName?: string;

@@ -38,6 +38,7 @@ import type { Expense } from '@/lib/types';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useNotifications } from '@/hooks/use-notifications';
 import { CheckCircle, FileUp } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
@@ -49,6 +50,8 @@ const formSchema = z.object({
   amount: z.coerce
     .number({ invalid_type_error: "Amount must be a number."})
     .positive('Amount must be a positive number.'),
+  date: z.string().min(1, 'Please select a date'),
+  category: z.string().min(1, 'Please select a category.'),
   receiptDataUri: z.string().optional(),
 });
 
@@ -86,9 +89,10 @@ function NewExpensePageSkeleton() {
 
 
 export default function NewExpensePage() {
-  const { user, role, clubs, loading } = useUser();
+  const { user, role, clubs, users, loading } = useUser();
   const { toast } = useToast();
   const router = useRouter();
+  const { createNotification } = useNotifications();
   
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -100,6 +104,8 @@ export default function NewExpensePage() {
       clubId: '',
       description: '',
       amount: '' as any,
+      date: '',
+      category: '',
       receiptDataUri: '',
     },
   });
@@ -181,9 +187,27 @@ export default function NewExpensePage() {
             submittedDate: new Date().toISOString(),
             submitterId: user.id,
             submitterName: user.name,
+            date: values.date,
+            category: values.category,
             receiptDataUri: values.receiptDataUri,
         };
         await addDoc(collection(db, 'expenses'), newExpense);
+
+        await createNotification(
+          user.id,
+          'Expense Submitted',
+          `Your expense "${values.description}" has been submitted for review.`
+        );
+
+        const adminUsers = users.filter(u => u.role === 'admin');
+        for (const admin of adminUsers){
+          await createNotification(
+            admin.id,
+            'New Expense Submission',
+            `A new expense has been submitted by ${user.name} for ${selectedClub?.name}.`
+          );
+        }
+
         
         toast({
             title: "Expense Submitted!",
@@ -236,6 +260,46 @@ export default function NewExpensePage() {
                           {club.name}
                         </SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Date of Expense</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field}/>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="food">Food & Drinks</SelectItem>
+                      <SelectItem value="supplies">Supplies & Materials</SelectItem>
+                      <SelectItem value="transport">Transportation</SelectItem>
+                      <SelectItem value="venue">Venue & Equipment Rental</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

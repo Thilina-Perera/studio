@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -15,6 +14,7 @@ import { useUser } from '@/hooks/use-user';
 import { SidebarTrigger } from '../ui/sidebar';
 import { LogOut } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
+import { NotificationBell } from './notification-bell';
 
 export function AppHeader() {
   const { user, logout } = useUser();
@@ -41,6 +41,7 @@ export function AppHeader() {
       <div className="w-full flex-1">
         {/* Can add a global search here if needed */}
       </div>
+      <NotificationBell />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="secondary" size="icon" className="rounded-full">
