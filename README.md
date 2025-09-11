@@ -1,17 +1,13 @@
 # Firebase Studio
 
-This is a NextJS starter in Firebase Studio.
+## **CRITICAL: How to Fix "Missing or insufficient permissions"**
 
-## Deployment Instructions
+You are seeing this error because your database security rules **must be deployed**. Your project code contains the correct rules in `firestore.rules`, but they are not yet active on your live database.
 
-### **CRITICAL: Fixing "Missing or insufficient permissions"**
-
-If you are seeing a "Missing or insufficient permissions" error, it means your database security rules **must be deployed**. Your project's code contains the correct rules in `firestore.rules`, but they are not yet active on your live database.
-
-To deploy the secure rules and fix this error, run the following command in your terminal:
+To deploy the secure rules and fix this error permanently, run the following command in your terminal:
 
 ```bash
 firebase deploy --only firestore:rules
 ```
 
-After deploying, the permission errors will be resolved.
+After you run this command and see "Deploy complete!", the permission errors will be resolved.
