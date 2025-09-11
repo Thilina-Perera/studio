@@ -64,8 +64,11 @@ export function NotificationBell() {
                         <Link href={notification.link} key={notification.id} passHref legacyBehavior>
                            <a 
                                 className="block p-4 hover:bg-muted/50" 
-                                onClick={() => {
-                                    handleMarkAsRead(notification.id);
+                                onClick={(e) => {
+                                    e.preventDefault(); // Prevent default link navigation
+                                    handleMarkAsRead(notification.id).then(() => {
+                                        window.location.href = notification.link; // Navigate after DB update
+                                    });
                                     setIsOpen(false);
                                 }}
                             >
@@ -88,3 +91,4 @@ export function NotificationBell() {
     </Popover>
   );
 }
+
