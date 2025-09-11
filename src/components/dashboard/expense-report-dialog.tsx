@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import {
@@ -72,7 +73,7 @@ export function ExpenseReportDialog({
     link.setAttribute('href', encodedUri);
     link.setAttribute(
       'download',
-      `expense_report_${format(new Date(), 'yyyyMMdd')}.csv`
+      `expense_report_${format(new Date(), 'yyyyMMdd_HHmmss')}.csv`
     );
     document.body.appendChild(link);
     link.click();
