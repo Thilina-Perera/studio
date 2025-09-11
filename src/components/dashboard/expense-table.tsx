@@ -154,7 +154,7 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
 
   const canPerformActions = role === 'admin' || role === 'representative';
   const showSubmitter = role === 'admin' || role === 'representative';
-  const numColumns = showSubmitter ? (canPerformActions ? 7 : 6) : 5;
+  const numColumns = showSubmitter ? (canPerformActions ? 8 : 7) : 6;
 
   return (
     <div className="rounded-lg border">
@@ -164,6 +164,7 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
             <TableHead>Club</TableHead>
             {showSubmitter && <TableHead>Submitter</TableHead>}
             <TableHead>Description</TableHead>
+            <TableHead>Category</TableHead>
             <TableHead className="text-right">Amount</TableHead>
             <TableHead>Submitted</TableHead>
             <TableHead>Status</TableHead>
@@ -188,10 +189,13 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
                   {getClubName(expense)}
                 </TableCell>
                 {showSubmitter && <TableCell>{getSubmitterName(expense)}</TableCell>}
-                <TableCell className="flex items-center gap-2">
+                <TableCell>
+                  <div className="flex items-center gap-2">
                     {expense.isFlagged && role === 'admin' && <Flag className="h-4 w-4 text-destructive" title="Flagged as fraudulent"/>}
-                    {expense.description}
+                    <span className="truncate max-w-xs">{expense.description}</span>
+                  </div>
                 </TableCell>
+                <TableCell>{expense.category || 'N/A'}</TableCell>
                 <TableCell className="text-right">
                   ${expense.amount.toFixed(2)}
                 </TableCell>

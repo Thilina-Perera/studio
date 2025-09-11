@@ -18,6 +18,10 @@ export interface Club {
 
 export type ExpenseStatus = 'Pending' | 'Under Review' | 'Approved' | 'Rejected';
 
+export const EXPENSE_CATEGORIES = ['Food & Beverage', 'Office Supplies', 'Event Materials', 'Travel', 'Other'] as const;
+export type ExpenseCategory = typeof EXPENSE_CATEGORIES[number];
+
+
 export interface Expense {
   id:string;
   clubId: string;
@@ -31,6 +35,7 @@ export interface Expense {
   submitterName?: string;
   adminComment?: string;
   isFlagged?: boolean;
+  category?: ExpenseCategory;
 }
 
 export interface PrioritizedExpense extends Expense {

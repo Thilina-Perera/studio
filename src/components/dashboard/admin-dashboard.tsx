@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useEffect } from 'react';
 import {
@@ -19,6 +20,7 @@ import {
 import { DateRangePicker } from '../ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import type { Club, Expense } from '@/lib/types';
+import { EXPENSE_CATEGORIES } from '@/lib/types';
 import { AiExpensePrioritization } from './ai-expense-prioritization';
 import { useUser } from '@/hooks/use-user';
 import { ExpenseReportDialog } from './expense-report-dialog';
@@ -31,6 +33,7 @@ interface AdminDashboardProps {
 export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
   const [descriptionFilter, setDescriptionFilter] = useState('');
   const [clubFilter, setClubFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState<DateRange | undefined>();
   const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>([]);
   const { users } = useUser();
@@ -49,6 +52,10 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
     if (clubFilter !== 'all') {
       expenses = expenses.filter((expense) => expense.clubId === clubFilter);
     }
+    
+    if (categoryFilter !== 'all') {
+        expenses = expenses.filter((expense) => expense.category === categoryFilter);
+    }
 
     if (dateFilter?.from) {
       expenses = expenses.filter((expense) => {
@@ -64,7 +71,7 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
     }
 
     setFilteredExpenses(expenses);
-  }, [descriptionFilter, clubFilter, dateFilter, allExpenses]);
+  }, [descriptionFilter, clubFilter, categoryFilter, dateFilter, allExpenses]);
 
   return (
     <div className="space-y-8">
@@ -105,6 +112,19 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
                 {allClubs.map((club) => (
                   <SelectItem key={club.id} value={club.id}>
                     {club.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {EXPENSE_CATEGORIES.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
                   </SelectItem>
                 ))}
               </SelectContent>

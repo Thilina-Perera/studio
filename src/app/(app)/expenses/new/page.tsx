@@ -34,7 +34,8 @@ import {
 import { useUser } from '@/hooks/use-user';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import type { Expense } from '@/lib/types';
+import type { Expense, ExpenseCategory } from '@/lib/types';
+import { EXPENSE_CATEGORIES } from '@/lib/types';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -49,6 +50,7 @@ const formSchema = z.object({
   amount: z.coerce
     .number({ invalid_type_error: "Amount must be a number."})
     .positive('Amount must be a positive number.'),
+  category: z.enum(EXPENSE_CATEGORIES),
   receiptDataUri: z.string().optional(),
 });
 
@@ -71,6 +73,10 @@ function NewExpensePageSkeleton() {
             <Skeleton className="h-20 w-full" />
         </div>
          <div className="space-y-2">
+            <Skeleton className="h-4 w-1/4" />
+            <Skeleton className="h-10 w-full" />
+        </div>
+        <div className="space-y-2">
             <Skeleton className="h-4 w-1/4" />
             <Skeleton className="h-10 w-full" />
         </div>
@@ -101,6 +107,7 @@ export default function NewExpensePage() {
       description: '',
       amount: '' as any,
       receiptDataUri: '',
+      category: 'Other',
     },
   });
     
@@ -177,6 +184,7 @@ export default function NewExpensePage() {
             clubName: selectedClub?.name || 'Unknown Club',
             description: values.description,
             amount: values.amount,
+            category: values.category,
             status: 'Pending',
             submittedDate: new Date().toISOString(),
             submitterId: user.id,
@@ -270,6 +278,36 @@ export default function NewExpensePage() {
                   <FormControl>
                     <Input type="number" step="0.01" placeholder="99.99" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category for this expense" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {EXPENSE_CATEGORIES.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Categorizing helps in better financial tracking.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
