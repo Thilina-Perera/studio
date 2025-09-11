@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { useUser } from '@/hooks/use-user';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { ScrollArea } from '../ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -21,6 +21,7 @@ import type { Notification } from '@/lib/types';
 export function NotificationBell() {
   const { user, notifications } = useUser();
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
 
   const unreadNotifications = notifications.filter((n) => !n.isRead);
   const unreadCount = unreadNotifications.length;
@@ -32,6 +33,12 @@ export function NotificationBell() {
     } catch (error) {
       console.error("Error marking notification as read:", error);
     }
+  };
+  
+  const handleNotificationClick = async (notification: Notification) => {
+    await handleMarkAsRead(notification.id);
+    router.push(notification.link);
+    setIsOpen(false);
   };
 
   if (!user) return null;
@@ -61,28 +68,24 @@ export function NotificationBell() {
             ) : (
                 <div className="divide-y">
                     {unreadNotifications.map(notification => (
-                        <Link href={notification.link} key={notification.id} passHref legacyBehavior>
-                           <a 
-                                className="block p-4 hover:bg-muted/50" 
-                                onClick={(e) => {
-                                    e.preventDefault(); // Prevent default link navigation
-                                    handleMarkAsRead(notification.id).then(() => {
-                                        window.location.href = notification.link; // Navigate after DB update
-                                    });
-                                    setIsOpen(false);
-                                }}
-                            >
-                                <div className="flex items-start gap-3">
-                                    <div className="h-2 w-2 rounded-full bg-primary mt-1.5 flex-shrink-0" />
-                                    <div className={cn("flex-1 space-y-1")}>
-                                        <p className="text-sm">{notification.message}</p>
-                                        <p className="text-xs text-muted-foreground">
-                                            {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
-                                        </p>
-                                    </div>
+                       <a 
+                            key={notification.id}
+                            className="block p-4 hover:bg-muted/50 cursor-pointer" 
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleNotificationClick(notification);
+                            }}
+                        >
+                            <div className="flex items-start gap-3">
+                                <div className="h-2 w-2 rounded-full bg-primary mt-1.5 flex-shrink-0" />
+                                <div className={cn("flex-1 space-y-1")}>
+                                    <p className="text-sm">{notification.message}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                                    </p>
                                 </div>
-                            </a>
-                        </Link>
+                            </div>
+                        </a>
                     ))}
                 </div>
             )}
@@ -91,4 +94,3 @@ export function NotificationBell() {
     </Popover>
   );
 }
-
