@@ -39,7 +39,7 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
   const [comment, setComment] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const { role } = useUser();
+  const { role, createNotification } = useUser();
   const { toast } = useToast();
 
   const getClubName = (expense: Expense) => {
@@ -56,9 +56,19 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
     expenseId: string,
     status: ExpenseStatus
   ) => {
+    const expense = expenses.find(e => e.id === expenseId);
+    if (!expense) return;
+
     const expenseRef = doc(db, 'expenses', expenseId);
     try {
       await updateDoc(expenseRef, { status });
+      
+      await createNotification({
+        userId: expense.submitterId,
+        message: `Your expense for "${expense.description.substring(0, 20)}..." has been ${status}.`,
+        link: `/expenses`
+      });
+
       toast({
         title: 'Status Updated',
         description: `Expense has been marked as ${status}.`,

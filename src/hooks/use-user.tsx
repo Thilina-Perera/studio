@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -8,14 +9,14 @@ import {
   useContext,
   ReactNode,
 } from 'react';
-import type { User as AppUser, UserRole, Club, Expense, RepresentativeRequest } from '@/lib/types';
+import type { User as AppUser, UserRole, Club, Expense, RepresentativeRequest, Notification } from '@/lib/types';
 import { auth, db } from '@/lib/firebase';
 import {
   onAuthStateChanged,
   signOut,
   User as FirebaseAuthUser,
 } from 'firebase/auth';
-import { collection, doc, getDoc, onSnapshot, QuerySnapshot, DocumentData } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot, QuerySnapshot, DocumentData, addDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 
 interface UserContextType {
@@ -26,7 +27,9 @@ interface UserContextType {
   expenses: Expense[];
   users: AppUser[];
   representativeRequests: RepresentativeRequest[];
+  notifications: Notification[];
   loading: boolean;
+  createNotification: (notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => Promise<void>;
   logout: () => void;
 }
 
@@ -42,6 +45,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [users, setUsers] = useState<AppUser[]>([]);
   const [representativeRequests, setRepresentativeRequests] = useState<RepresentativeRequest[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -49,6 +53,18 @@ export function UserProvider({ children }: { children: ReactNode }) {
     await signOut(auth);
     router.push('/');
   }, [router]);
+
+  const createNotification = useCallback(async (notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => {
+    try {
+        await addDoc(collection(db, 'notifications'), {
+            ...notification,
+            isRead: false,
+            createdAt: new Date().toISOString(),
+        });
+    } catch (error) {
+        console.error("Error creating notification:", error);
+    }
+  }, []);
 
 
   useEffect(() => {
@@ -67,6 +83,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
           setExpenses([]);
           setUsers([]);
           setRepresentativeRequests([]);
+          setNotifications([]);
           setLoading(false);
         }
       }
@@ -85,6 +102,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const usersCollection = collection(db, 'users');
     const requestsCollection = collection(db, 'representativeRequests');
     const userDocRef = doc(db, 'users', firebaseUser.uid);
+    const notificationsCollection = collection(db, 'notifications');
+
 
     const unsubscribeUsers = onSnapshot(
       usersCollection,
@@ -165,6 +184,24 @@ export function UserProvider({ children }: { children: ReactNode }) {
           setLoading(false);
       }
     );
+    
+     const unsubscribeNotifications = onSnapshot(
+      notificationsCollection,
+      (snapshot: QuerySnapshot<DocumentData>) => {
+        const notificationsData = snapshot.docs
+         .map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+         }))
+         .filter(notif => notif.userId === firebaseUser.uid)
+         .sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) as Notification[];
+        
+        setNotifications(notificationsData);
+      },
+      (error) => {
+          console.error('Error fetching notifications:', error);
+      }
+    );
 
 
     return () => {
@@ -172,6 +209,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       unsubscribeExpenses();
       unsubscribeUsers();
       unsubscribeRequests();
+      unsubscribeNotifications();
     };
   }, [firebaseUser]);
   
@@ -183,7 +221,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
     expenses,
     users,
     representativeRequests,
+    notifications,
     loading,
+    createNotification,
     logout: handleLogout,
   };
 

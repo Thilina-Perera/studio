@@ -56,3 +56,12 @@ export interface RepresentativeRequest {
   status: RepresentativeRequestStatus;
   requestDate: string;
 }
+
+export interface Notification {
+    id: string;
+    userId: string;
+    message: string;
+    link: string;
+    isRead: boolean;
+    createdAt: string;
+}

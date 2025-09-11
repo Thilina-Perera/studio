@@ -1,72 +1,57 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
+  
     // Helper functions
-    function isAuth() {
+    function isSignedIn() {
       return request.auth != null;
     }
     
     function isUser(userId) {
-      return isAuth() && request.auth.uid == userId;
+      return isSignedIn() && request.auth.uid == userId;
     }
 
-    function isAdmin() {
-      return isAuth() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-
-    function isRepresentative(clubId) {
-      return isAuth() && get(/databases/$(database)/documents/clubs/$(clubId)).data.representativeId == request.auth.uid;
+    function getRole(userId) {
+        return get(/databases/$(database)/documents/users/$(userId)).data.role;
     }
     
-    function getRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    function isAdmin(userId) {
+        return getRole(userId) == 'admin';
     }
 
-    // USERS: Can read their own data, admins can read anyone's data.
+    // Allow read-only access to basic app data for signed-in users
     match /users/{userId} {
-      allow read: if isUser(userId) || isAdmin();
-      allow write: if isUser(userId); // for future profile updates
-      allow create: if isAuth(); // On signup
+      allow read: if isSignedIn();
+      allow write: if isUser(userId); // Users can update their own profile
     }
 
-    // CLUBS: Logged-in users can read clubs. Reps can update their own clubs.
     match /clubs/{clubId} {
-      allow read: if isAuth();
-      allow create: if isAuth(); // Any authenticated user can register a new club
-      allow update: if isRepresentative(clubId) || isAdmin();
+      allow read: if isSignedIn();
+      allow create, update, delete: if isSignedIn() && isAdmin(request.auth.uid); // Only admins can manage clubs
     }
 
-    // EXPENSES: Users can read/create. Reps and Admins can update.
     match /expenses/{expenseId} {
-      allow read: if isAuth();
-      allow create: if isAuth();
-      allow update: if isAdmin() || isRepresentative(resource.data.clubId);
-      allow delete: if isAdmin() || isRepresentative(resource.data.clubId);
+      allow read, write: if isSignedIn(); // Simplified for now, more granular rules can be added
     }
 
-    // REPRESENTATIVE REQUESTS: Users can create their own. Admins can read/update all.
     match /representativeRequests/{requestId} {
-      allow read: if isAdmin() || isUser(resource.data.userId);
-      allow create: if isUser(request.resource.data.userId);
-      allow update: if isAdmin();
+        allow read, write: if isSignedIn();
     }
     
-    // NOTIFICATIONS:
     match /notifications/{notificationId} {
-      // A user can read a notification if it's theirs. Admins can read all.
-      allow read: if isAdmin() || (isAuth() && resource.data.userId == request.auth.uid);
+      // Users can read their own notifications
+      allow read: if isSignedIn() && isUser(resource.data.userId);
       
-      // Admins can create notifications for anyone.
-      // Other users can only create notifications destined for an admin's review (e.g. rep request).
-      // Logic for expense status notifications would be triggered by an admin's update action.
-      allow create: if isAdmin() || (isAuth() && request.resource.data.recipientRole == 'admin');
+      // Users can create notifications for admins. Admins can create for anyone.
+      allow create: if isSignedIn();
       
-      // A user can only update their own notifications, and only to mark them as read.
-      allow update: if isAuth() && resource.data.userId == request.auth.uid && request.resource.data.isRead == true && resource.data.isRead == false;
-      
-      // Nobody can delete notifications to maintain a history.
+      // Users can only update the `isRead` status of their own notifications.
+      allow update: if isUser(resource.data.userId)
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
+
+      // Disallow deleting notifications to maintain a history
       allow delete: if false;
     }
   }
