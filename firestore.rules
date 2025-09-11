@@ -82,5 +82,13 @@ service cloud.firestore {
         // Admins can read/write any request
         allow read, write: if isUserAdmin(request.auth.uid);
     }
+
+    // NOTIFICATIONS
+    match /notifications/{notificationId} {
+        // Users can read and delete their own notifications
+        allow read, delete: if isUserAuthenticated() && resource.data.userId == request.auth.uid;
+        // Admins can create notifications
+        allow create: if isUserAdmin(request.auth.uid);
+    }
   }
 }

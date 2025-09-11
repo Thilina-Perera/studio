@@ -9,23 +9,26 @@ export const useNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
-    if (user) {
-      const q = query(
-        collection(db, 'notifications'),
-        where('userId', '==', user.id),
-        orderBy('createdAt', 'desc')
-      );
-
-      const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const userNotifications: Notification[] = [];
-        querySnapshot.forEach((doc) => {
-          userNotifications.push({ id: doc.id, ...doc.data() } as Notification);
-        });
-        setNotifications(userNotifications);
-      });
-
-      return () => unsubscribe();
+    if (!user) {
+      setNotifications([]);
+      return;
     }
+
+    const q = query(
+      collection(db, 'notifications'),
+      where('userId', '==', user.id),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const userNotifications: Notification[] = [];
+      querySnapshot.forEach((doc) => {
+        userNotifications.push({ id: doc.id, ...doc.data() } as Notification);
+      });
+      setNotifications(userNotifications);
+    });
+
+    return () => unsubscribe();
   }, [user]);
 
   const createNotification = async (userId: string, title: string, message: string) => {
