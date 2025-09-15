@@ -54,6 +54,19 @@ export function SignupForm() {
         role: 'student', // Default role
       });
 
+      // Send welcome email
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: values.email,
+          subject: 'Welcome!',
+          html: `<h1>Welcome, ${values.name}!</h1><p>Thanks for signing up. We\'re excited to have you.</p>`,
+        }),
+      });
+
       toast({
         title: 'Account Created!',
         description: 'Your account has been successfully created.',
