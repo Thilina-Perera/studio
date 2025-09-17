@@ -22,7 +22,7 @@ const predefinedQA: { [key: string]: string } = {
   'how are expense priorities determined?':
     'The AI Priority Queue uses a model to analyze the description and amount of pending expenses, flagging the most urgent or relevant ones for your immediate attention.',
   'what are the different user roles?':
-    'There are three roles: Students can submit expenses for their clubs. Representatives can manage their club\'s expenses and members. Admins have full oversight and can approve or reject any expense.',
+    "There are three roles: Students can submit expenses for their clubs. Representatives can manage their club's expenses and members. Admins have full oversight and can approve or reject any expense.",
   'how do I handle a representative request?':
     'Go to the "Approvals" page from the sidebar. There you will see a list of pending requests from students to become club representatives. You can approve or reject them there.',
   'can I export a report of expenses?':
@@ -97,7 +97,7 @@ export function ChatbotPopup() {
                 }`}
               >
                 {message.sender === 'bot' && (
-                  <Avatar className="h-8 w-8 bg-foreground text-background">
+                  <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
                     <AvatarFallback>
                       <Bot className="h-5 w-5" />
                     </AvatarFallback>
@@ -106,14 +106,14 @@ export function ChatbotPopup() {
                 <div
                   className={`rounded-lg px-3 py-2 max-w-[80%] text-sm ${
                     message.sender === 'bot'
-                      ? 'bg-muted'
+                      ? 'bg-primary text-primary-foreground'
                       : 'bg-muted'
                   }`}
                 >
                   {message.text}
                 </div>
                 {message.sender === 'user' && (
-                  <Avatar className="h-8 w-8 bg-foreground text-background">
+                  <Avatar className="h-8 w-8 bg-muted text-primary">
                     <AvatarFallback>
                       <User className="h-5 w-5" />
                     </AvatarFallback>
