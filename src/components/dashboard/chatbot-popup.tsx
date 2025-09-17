@@ -18,7 +18,7 @@ interface Message {
 
 const predefinedQA: { [key: string]: string } = {
   'what is the purpose of this dashboard?':
-    'This dashboard allows admins to review, approve, reject, and manage all expense submissions from every club. You can also track spending and get AI-powered insights.',
+    'This admin dashboard provides a centralized place to view, manage, and approve all club expenses. You can filter expenses, see AI-prioritized items, and get budget insights.',
   'how are expense priorities determined?':
     'The AI Priority Queue uses a model to analyze the description and amount of pending expenses, flagging the most urgent or relevant ones for your immediate attention.',
   'what are the different user roles?':
@@ -35,12 +35,7 @@ const predefinedQA: { [key: string]: string } = {
 export function ChatbotPopup() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      sender: 'bot',
-      text: "Hello! I'm here to help. Ask me a question about this dashboard.",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -88,20 +83,21 @@ export function ChatbotPopup() {
         className="w-[400px] h-[500px] flex flex-col p-0"
         sideOffset={16}
       >
-        <div className="p-4 border-b bg-primary text-primary-foreground rounded-t-lg">
-          <h3 className="font-semibold text-lg">ReimburseAI Assistant</h3>
+        <div className="p-4 border-b">
+          <h3 className="font-semibold text-lg">Dashboard Chatbot</h3>
+          <p className="text-sm text-muted-foreground">Ask questions about how to use the dashboard.</p>
         </div>
         <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-          <div className="space-y-4">
+          <div className="space-y-6">
             {messages.map((message, index) => (
               <div
                 key={index}
                 className={`flex items-start gap-3 ${
-                  message.sender === 'bot' ? '' : 'justify-end'
+                  message.sender === 'user' ? 'justify-end' : ''
                 }`}
               >
                 {message.sender === 'bot' && (
-                  <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
+                  <Avatar className="h-8 w-8 bg-foreground text-background">
                     <AvatarFallback>
                       <Bot className="h-5 w-5" />
                     </AvatarFallback>
@@ -111,13 +107,13 @@ export function ChatbotPopup() {
                   className={`rounded-lg px-3 py-2 max-w-[80%] text-sm ${
                     message.sender === 'bot'
                       ? 'bg-muted'
-                      : 'bg-primary text-primary-foreground'
+                      : 'bg-muted'
                   }`}
                 >
                   {message.text}
                 </div>
                 {message.sender === 'user' && (
-                  <Avatar className="h-8 w-8">
+                  <Avatar className="h-8 w-8 bg-foreground text-background">
                     <AvatarFallback>
                       <User className="h-5 w-5" />
                     </AvatarFallback>
@@ -132,11 +128,11 @@ export function ChatbotPopup() {
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask a question..."
+              placeholder="Type your question..."
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             />
-            <Button onClick={handleSendMessage} size="icon">
-              <Send className="h-4 w-4" />
+            <Button onClick={handleSendMessage}>
+              Send
             </Button>
           </div>
         </div>
