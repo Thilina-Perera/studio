@@ -29,6 +29,7 @@ import { getBudgetRecommendations } from '@/ai/flows/budget-recommendations';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, DollarSign, PieChart, Sparkles, Users } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EXPENSE_CATEGORIES, ExpenseCategory } from '@/lib/types';
 
 function AiRecommendations({ chartData }: { chartData: any[] }) {
   const [recommendations, setRecommendations] = useState('');
@@ -115,13 +116,23 @@ export default function BudgetTrackerPage() {
       const clubExpenses = approvedExpenses.filter(
         (expense) => expense.clubId === club.id
       );
+
+      const categorySpending = clubExpenses.reduce((acc, expense) => {
+        const category = expense.category || 'Other';
+        acc[category] = (acc[category] || 0) + expense.amount;
+        return acc;
+      }, {} as { [key in ExpenseCategory]: number });
+
+
       const totalAmount = clubExpenses.reduce(
         (sum, expense) => sum + expense.amount,
         0
       );
+
       return {
         club: club.name,
         total: totalAmount,
+        ...categorySpending,
         expenseCount: clubExpenses.length,
         average: clubExpenses.length > 0 ? totalAmount / clubExpenses.length : 0,
       };
@@ -141,12 +152,16 @@ export default function BudgetTrackerPage() {
   }, [clubs, approvedExpenses]);
 
 
-  const chartConfig = {
-    total: {
-      label: 'Total Spent',
-      color: 'hsl(var(--chart-1))',
-    },
-  };
+  const chartConfig = useMemo(() => {
+     const config: { [key: string]: { label: string; color: string; } } = {};
+     EXPENSE_CATEGORIES.forEach((category, index) => {
+        config[category] = {
+            label: category,
+            color: `hsl(var(--chart-${index + 1}))`,
+        };
+     });
+     return config;
+  }, []);
 
   return (
     <div className="space-y-8">
@@ -192,7 +207,7 @@ export default function BudgetTrackerPage() {
         <CardHeader>
           <CardTitle>Club Spending Overview</CardTitle>
           <CardDescription>
-            A visual breakdown of approved spending across all clubs.
+            A visual breakdown of approved spending across all clubs, categorized by expense type.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -201,8 +216,8 @@ export default function BudgetTrackerPage() {
                 <p>Loading chart data...</p>
             </div>
           ) : chartData.length > 0 && approvedExpenses.length > 0 ? (
-            <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
-              <BarChart data={chartData} accessibilityLayer>
+            <ChartContainer config={chartConfig} className="min-h-[400px] w-full">
+               <BarChart data={chartData} accessibilityLayer>
                 <CartesianGrid vertical={false} />
                 <XAxis
                   dataKey="club"
@@ -213,13 +228,22 @@ export default function BudgetTrackerPage() {
                 />
                 <YAxis
                   tickFormatter={(value) => `$${value}`}
+                  domain={[0, 'dataMax + 1000']}
                 />
                 <ChartTooltip
                   cursor={false}
                   content={<ChartTooltipContent indicator="dot" />}
                 />
                  <ChartLegend content={<ChartLegendContent />} />
-                <Bar dataKey="total" fill="var(--color-total)" radius={4} />
+                 {EXPENSE_CATEGORIES.map((category, index) => (
+                    <Bar
+                        key={category}
+                        dataKey={category}
+                        fill={`hsl(var(--chart-${index + 1}))`}
+                        stackId="a"
+                        radius={[4, 4, 0, 0]}
+                    />
+                 ))}
               </BarChart>
             </ChartContainer>
           ) : (
