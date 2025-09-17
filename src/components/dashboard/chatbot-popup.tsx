@@ -97,23 +97,23 @@ export function ChatbotPopup() {
                 }`}
               >
                 {message.sender === 'bot' && (
-                  <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
+                  <Avatar className="h-8 w-8 bg-background">
                     <AvatarFallback>
-                      <Bot className="h-5 w-5" />
+                      <Bot className="h-5 w-5 text-primary" />
                     </AvatarFallback>
                   </Avatar>
                 )}
                 <div
                   className={`rounded-lg px-3 py-2 max-w-[80%] text-sm ${
                     message.sender === 'bot'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
+                      ? 'bg-muted'
+                      : 'bg-primary text-primary-foreground'
                   }`}
                 >
                   {message.text}
                 </div>
                 {message.sender === 'user' && (
-                  <Avatar className="h-8 w-8 bg-muted text-primary">
+                  <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
                     <AvatarFallback>
                       <User className="h-5 w-5" />
                     </AvatarFallback>
