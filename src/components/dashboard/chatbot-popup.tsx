@@ -113,9 +113,9 @@ export function ChatbotPopup() {
                   {message.text}
                 </div>
                 {message.sender === 'user' && (
-                  <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
+                  <Avatar className="h-8 w-8 bg-background">
                     <AvatarFallback>
-                      <User className="h-5 w-5" />
+                      <User className="h-5 w-5 text-primary" />
                     </AvatarFallback>
                   </Avatar>
                 )}
