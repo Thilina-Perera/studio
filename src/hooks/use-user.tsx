@@ -63,25 +63,33 @@ export function UserProvider({ children }: { children: ReactNode }) {
         createdAt: new Date().toISOString(),
       });
 
-      // 2. Send an email notification
-      const recipient = users.find(u => u.id === notification.userId);
-      if (recipient?.email) {
-        await fetch('/api/send-email', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            to: recipient.email,
-            subject: 'New Notification', // Or a more specific subject
-            html: `<p>${notification.message}</p><p><a href="${notification.link}">View Details</a></p>`,
-          }),
-        });
+      // 2. Fetch recipient data directly to ensure it's up-to-date
+      const userRef = doc(db, 'users', notification.userId);
+      const userDoc = await getDoc(userRef);
+
+      if (userDoc.exists()) {
+        const recipient = userDoc.data() as AppUser;
+        if (recipient.email) {
+          // 3. Send an email notification
+          await fetch('/api/send-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              to: recipient.email,
+              subject: 'New Notification', // Or a more specific subject
+              html: `<p>${notification.message}</p><p><a href="${notification.link}">View Details</a></p>`,
+            }),
+          });
+        }
+      } else {
+        console.warn(`User document not found for userId: ${notification.userId}. Cannot send email.`);
       }
     } catch (error) {
       console.error("Error creating notification:", error);
     }
-  }, [users]);
+  }, []);
 
   const markNotificationAsRead = useCallback((notificationId: string) => {
     // Optimistically update the UI
