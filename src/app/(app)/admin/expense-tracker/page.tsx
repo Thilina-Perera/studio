@@ -71,7 +71,7 @@ function AiRecommendations({ chartData }: { chartData: any[] }) {
     <Card>
       <CardHeader className='flex-row items-center justify-between'>
         <div>
-            <CardTitle>AI Budget Advisor</CardTitle>
+            <CardTitle>AI Expense Advisor</CardTitle>
             <CardDescription>
                 Get AI-powered recommendations based on club spending.
             </CardDescription>
@@ -108,7 +108,7 @@ function AiRecommendations({ chartData }: { chartData: any[] }) {
         )}
          {!loading && !error && !recommendations && (
             <p className="text-center text-muted-foreground py-8">
-                Click the button to generate budget recommendations.
+                Click the button to generate expense recommendations.
             </p>
         )}
       </CardContent>
@@ -201,9 +201,9 @@ export default function BudgetTrackerPage() {
   return (
     <div className="space-y-8">
        <div className="space-y-2">
-         <h1 className="text-3xl font-bold tracking-tight">Budget Tracker</h1>
+         <h1 className="text-3xl font-bold tracking-tight">Expense Tracker</h1>
          <p className="text-muted-foreground">
-            Visualize approved spending and get AI-powered budget insights.
+            Visualize approved spending and get AI-powered expense insights.
          </p>
        </div>
 

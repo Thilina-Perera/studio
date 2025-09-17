@@ -18,7 +18,7 @@ import { Button } from '../ui/button';
 const adminNav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/requests', label: 'Approvals', icon: CheckSquare },
-  { href: '/admin/budget-tracker', label: 'Budget Tracker', icon: PieChart },
+  { href: '/admin/expense-tracker', label: 'Expense Tracker', icon: PieChart },
 ];
 
 const repNav = [
