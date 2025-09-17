@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -16,7 +15,7 @@ import {
   signOut,
   User as FirebaseAuthUser,
 } from 'firebase/auth';
-import { collection, doc, getDoc, onSnapshot, QuerySnapshot, DocumentData, addDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot, QuerySnapshot, DocumentData, addDoc, updateDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 
 interface UserContextType {
@@ -30,6 +29,7 @@ interface UserContextType {
   notifications: Notification[];
   loading: boolean;
   createNotification: (notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => Promise<void>;
+  markNotificationAsRead: (notificationId: string) => void;
   logout: () => void;
 }
 
@@ -54,15 +54,54 @@ export function UserProvider({ children }: { children: ReactNode }) {
     router.push('/');
   }, [router]);
 
-  const createNotification = useCallback(async (notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => {
+ const createNotification = useCallback(async (notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => {
     try {
-        await addDoc(collection(db, 'notifications'), {
-            ...notification,
-            isRead: false,
-            createdAt: new Date().toISOString(),
-        });
+      // 1. Create the notification in the database
+      await addDoc(collection(db, 'notifications'), {
+        ...notification,
+        isRead: false,
+        createdAt: new Date().toISOString(),
+      });
+
+      // 2. Fetch recipient data directly to ensure it's up-to-date
+      const userRef = doc(db, 'users', notification.userId);
+      const userDoc = await getDoc(userRef);
+
+      if (userDoc.exists()) {
+        const recipient = userDoc.data() as AppUser;
+        if (recipient.email) {
+          // 3. Send an email notification
+          await fetch('/api/send-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              to: recipient.email,
+              subject: 'New Notification', // Or a more specific subject
+              html: `<p>${notification.message}</p><p><a href="${notification.link}">View Details</a></p>`,
+            }),
+          });
+        }
+      } else {
+        console.warn(`User document not found for userId: ${notification.userId}. Cannot send email.`);
+      }
     } catch (error) {
-        console.error("Error creating notification:", error);
+      console.error("Error creating notification:", error);
+    }
+  }, []);
+
+  const markNotificationAsRead = useCallback((notificationId: string) => {
+    // Optimistically update the UI
+    setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
+    
+    // Update the database in the background
+    try {
+      const notifRef = doc(db, 'notifications', notificationId);
+      updateDoc(notifRef, { isRead: true });
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      // Note: In a real-world app, you might want to add logic to revert the optimistic update on failure.
     }
   }, []);
 
@@ -188,13 +227,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
      const unsubscribeNotifications = onSnapshot(
       notificationsCollection,
       (snapshot: QuerySnapshot<DocumentData>) => {
-        const notificationsData = snapshot.docs
+        const notificationsData = (snapshot.docs
          .map((doc) => ({
             id: doc.id,
             ...doc.data(),
-         }))
+         })) as Notification[])
          .filter(notif => notif.userId === firebaseUser.uid)
-         .sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) as Notification[];
+         .sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         
         setNotifications(notificationsData);
       },
@@ -224,6 +263,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     notifications,
     loading,
     createNotification,
+    markNotificationAsRead,
     logout: handleLogout,
   };
 

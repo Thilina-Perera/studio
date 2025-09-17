@@ -9,29 +9,25 @@ import {
 } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/hooks/use-user';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
-import { ScrollArea } from '../ui/scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import type { Notification } from '@/lib/types';
 
 export function NotificationBell() {
-  const { user, notifications, loading } = useUser();
+  const { user, notifications, loading, markNotificationAsRead } = useUser();
   const router = useRouter();
-
-  const handleMarkAsRead = async (notificationId: string) => {
-    try {
-      const notifRef = doc(db, 'notifications', notificationId);
-      await updateDoc(notifRef, { isRead: true });
-    } catch (error) {
-      console.error('Failed to mark notification as read', error);
-    }
-  };
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleNotificationClick = (notification: Notification) => {
-    handleMarkAsRead(notification.id);
+    // 1. Optimistically mark the notification as read, which will instantly remove it from the UI.
+    markNotificationAsRead(notification.id);
+
+    // 2. Immediately close the popover for a clean UX.
+    setIsOpen(false);
+
+    // 3. Navigate to the notification's link.
     router.push(notification.link);
   };
   
@@ -41,7 +37,7 @@ export function NotificationBell() {
   if (!user) return null;
 
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative rounded-full">
           <Bell className="h-5 w-5" />

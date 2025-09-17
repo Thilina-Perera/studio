@@ -20,7 +20,7 @@ import {
 import { DateRangePicker } from '../ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import type { Club, Expense } from '@/lib/types';
-import { EXPENSE_CATEGORIES } from '@/lib/types';
+import { EXPENSE_CATEGORIES, EXPENSE_STATUSES } from '@/lib/types';
 import { AiExpensePrioritization } from './ai-expense-prioritization';
 import { useUser } from '@/hooks/use-user';
 import { ExpenseReportDialog } from './expense-report-dialog';
@@ -37,6 +37,7 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
   const [descriptionFilter, setDescriptionFilter] = useState('');
   const [clubFilter, setClubFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState<DateRange | undefined>();
   const [sortOption, setSortOption] = useState<SortOption>('default');
   const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>([]);
@@ -59,6 +60,10 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
     
     if (categoryFilter !== 'all') {
         expenses = expenses.filter((expense) => expense.category === categoryFilter);
+    }
+
+    if (statusFilter !== 'all') {
+      expenses = expenses.filter((expense) => expense.status === statusFilter);
     }
 
     if (dateFilter?.from) {
@@ -94,7 +99,7 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
     });
 
     setFilteredExpenses(sortedExpenses);
-  }, [descriptionFilter, clubFilter, categoryFilter, dateFilter, sortOption, allExpenses]);
+  }, [descriptionFilter, clubFilter, categoryFilter, statusFilter, dateFilter, sortOption, allExpenses]);
 
   return (
     <div className="space-y-8">
@@ -148,6 +153,19 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
                 {EXPENSE_CATEGORIES.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                {EXPENSE_STATUSES.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status}
                   </SelectItem>
                 ))}
               </SelectContent>
