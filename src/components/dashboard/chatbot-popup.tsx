@@ -6,7 +6,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { Bot, Send, User } from 'lucide-react';
+import { Bot, User } from 'lucide-react';
 import { Input } from '../ui/input';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { ScrollArea } from '../ui/scroll-area';
@@ -70,7 +70,7 @@ export function ChatbotPopup() {
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant="primary"
+          variant="default"
           className="fixed bottom-8 right-8 rounded-full w-16 h-16 shadow-lg z-50"
         >
           <Bot className="h-8 w-8" />
@@ -84,7 +84,7 @@ export function ChatbotPopup() {
         sideOffset={16}
       >
         <div className="p-4 border-b">
-          <h3 className="font-semibold text-lg">Dashboard Chatbot</h3>
+          <h3 className="font-semibold text-lg">Reimburse AI assistant</h3>
           <p className="text-sm text-muted-foreground">Ask questions about how to use the dashboard.</p>
         </div>
         <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
