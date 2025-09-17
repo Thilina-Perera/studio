@@ -23,13 +23,26 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart';
-import { Bar, BarChart, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Pie, PieChart as RechartsPieChart, Cell } from 'recharts';
 import { useUser } from '@/hooks/use-user';
 import { getBudgetRecommendations } from '@/ai/flows/budget-recommendations';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, DollarSign, PieChart, Sparkles, Users } from 'lucide-react';
+import { AlertTriangle, DollarSign, PieChart, Sparkles, Users, BarChart2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EXPENSE_CATEGORIES, ExpenseCategory } from '@/lib/types';
+
+const categoryColors: { [key in ExpenseCategory]: string } = {
+    'Food & Beverage': '#FF0000',
+    'Stationary': '#0000FF',
+    'Event Materials': '#008000',
+    'Transport': '#FFA500',
+    'Venue': '#800080',
+    'Subscriptions': '#FFFF00',
+    'Advertising': '#00FFFF',
+    'Entertainment': '#FFC0CB',
+    'Other': '#808080',
+};
+
 
 function AiRecommendations({ chartData }: { chartData: any[] }) {
   const [recommendations, setRecommendations] = useState('');
@@ -106,6 +119,8 @@ function AiRecommendations({ chartData }: { chartData: any[] }) {
 
 export default function BudgetTrackerPage() {
   const { clubs, expenses, loading } = useUser();
+  const [chartType, setChartType] = useState<'bar' | 'pie'>('bar');
+  const [selectedClub, setSelectedClub] = useState<any | null>(null);
 
   const approvedExpenses = useMemo(() => {
     return expenses.filter(expense => expense.status === 'Approved');
@@ -153,15 +168,35 @@ export default function BudgetTrackerPage() {
 
 
   const chartConfig = useMemo(() => {
-     const config: { [key: string]: { label: string; color: string; } } = {};
-     EXPENSE_CATEGORIES.forEach((category, index) => {
-        config[category] = {
-            label: category,
-            color: `hsl(var(--chart-${index + 1}))`,
-        };
-     });
-     return config;
-  }, []);
+    const config: { [key: string]: { label: string; color: string; } } = {};
+    EXPENSE_CATEGORIES.forEach((category) => {
+       config[category] = {
+           label: category,
+           color: categoryColors[category],
+       };
+    });
+    return config;
+ }, []);
+
+  const pieChartConfig = useMemo(() => {
+    const config: { [key: string]: { label: string; color: string; } } = {};
+    chartData.forEach((data, index) => {
+       config[data.club] = {
+           label: data.club,
+           color: `hsl(var(--chart-${index + 1}))`,
+       };
+    });
+    return config;
+ }, [chartData]);
+
+ const selectedClubCategoryData = useMemo(() => {
+    if (!selectedClub) return [];
+    return EXPENSE_CATEGORIES.map(category => ({
+        name: category,
+        value: selectedClub[category] || 0
+    })).filter(item => item.value > 0);
+  }, [selectedClub]);
+
 
   return (
     <div className="space-y-8">
@@ -204,11 +239,23 @@ export default function BudgetTrackerPage() {
 
 
       <Card>
-        <CardHeader>
-          <CardTitle>Club Spending Overview</CardTitle>
-          <CardDescription>
-            A visual breakdown of approved spending across all clubs, categorized by expense type.
-          </CardDescription>
+        <CardHeader className="flex-row items-center justify-between">
+          <div>
+            <CardTitle>Club Spending Overview</CardTitle>
+            <CardDescription>
+                A visual breakdown of approved spending across all clubs.
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant={chartType === 'bar' ? 'default' : 'outline'} size="icon" onClick={() => setChartType('bar')}>
+                <BarChart2 className="h-4 w-4" />
+                <span className="sr-only">Bar Chart</span>
+            </Button>
+            <Button variant={chartType === 'pie' ? 'default' : 'outline'} size="icon" onClick={() => setChartType('pie')}>
+                <PieChart className="h-4 w-4" />
+                <span className="sr-only">Pie Chart</span>
+            </Button>
+        </div>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -216,36 +263,98 @@ export default function BudgetTrackerPage() {
                 <p>Loading chart data...</p>
             </div>
           ) : chartData.length > 0 && approvedExpenses.length > 0 ? (
-            <ChartContainer config={chartConfig} className="min-h-[400px] w-full">
-               <BarChart data={chartData} accessibilityLayer>
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="club"
-                  tickLine={false}
-                  tickMargin={10}
-                  axisLine={false}
-                  tickFormatter={(value) => value.slice(0, 15)}
-                />
-                <YAxis
-                  tickFormatter={(value) => `$${value}`}
-                  domain={[0, 'dataMax + 1000']}
-                />
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent indicator="dot" />}
-                />
-                 <ChartLegend content={<ChartLegendContent />} />
-                 {EXPENSE_CATEGORIES.map((category, index) => (
-                    <Bar
-                        key={category}
-                        dataKey={category}
-                        fill={`hsl(var(--chart-${index + 1}))`}
-                        stackId="a"
-                        radius={[4, 4, 0, 0]}
+            <>
+            {chartType === 'bar' ? (
+                <ChartContainer config={chartConfig} className="min-h-[400px] w-full">
+                <BarChart data={chartData} accessibilityLayer>
+                    <CartesianGrid vertical={false} />
+                    <XAxis
+                    dataKey="club"
+                    tickLine={false}
+                    tickMargin={10}
+                    axisLine={false}
+                    tickFormatter={(value) => value.slice(0, 15)}
                     />
-                 ))}
-              </BarChart>
-            </ChartContainer>
+                    <YAxis
+                    tickFormatter={(value) => `$${value}`}
+                    domain={[0, 'dataMax + 1000']}
+                    />
+                    <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent indicator="dot" />}
+                    />
+                    <ChartLegend content={<ChartLegendContent />} />
+                    {EXPENSE_CATEGORIES.map((category) => (
+                        <Bar
+                            key={category}
+                            dataKey={category}
+                            fill={categoryColors[category as ExpenseCategory]}
+                            stackId="a"
+                            radius={[4, 4, 0, 0]}
+                        />
+                    ))}
+                </BarChart>
+                </ChartContainer>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+                    <div className="md:col-span-2">
+                        <ChartContainer
+                            config={selectedClub ? chartConfig : pieChartConfig}
+                            className="min-h-[450px] w-full"
+                        >
+                            <RechartsPieChart>
+                                <ChartTooltip
+                                    cursor={false}
+                                    content={<ChartTooltipContent indicator="dot" />}
+                                />
+                                <Pie
+                                    data={selectedClub ? selectedClubCategoryData : chartData}
+                                    dataKey={selectedClub ? "value" : "total"}
+                                    nameKey={selectedClub ? "name" : "club"}
+                                    cx="50%"
+                                    cy="50%"
+                                    outerRadius={180}
+                                    labelLine={false}
+                                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                                >
+                                    {(selectedClub ? selectedClubCategoryData : chartData).map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={selectedClub? chartConfig[entry.name as ExpenseCategory]?.color : pieChartConfig[entry.club]?.color} />
+                                    ))}
+                                </Pie>
+                                <ChartLegend content={<ChartLegendContent />} />
+                            </RechartsPieChart>
+                        </ChartContainer>
+                    </div>
+
+                    <Card className="md:col-span-1">
+                        <CardHeader>
+                            <CardTitle>
+                                {selectedClub ? `${selectedClub.club} Categories` : 'Clubs'}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex flex-col gap-2">
+                             <Button
+                                variant={!selectedClub ? 'secondary' : 'ghost'}
+                                className="w-full justify-start"
+                                onClick={() => setSelectedClub(null)}
+                            >
+                                All Clubs
+                            </Button>
+                            {chartData.map((club) => (
+                                <Button
+                                    key={club.club}
+                                    variant={selectedClub?.club === club.club ? 'secondary' : 'ghost'}
+                                    className="w-full justify-start"
+                                    onClick={() => setSelectedClub(club)}
+                                >
+                                    {club.club}
+                                </Button>
+                            ))}
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
+            </>
           ) : (
              <div className="flex items-center justify-center min-h-[300px]">
                 <p className="text-center text-muted-foreground">No approved expenses to display.</p>
