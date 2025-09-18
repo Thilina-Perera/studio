@@ -1,5 +1,6 @@
+
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -43,10 +44,12 @@ export function RepresentativeDashboard({ allClubs, allExpenses }: Representativ
   const [sortOption, setSortOption] = useState<SortOption>('default');
   const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>([]);
 
-  const userClubs = allClubs.filter(
-    (club) => club.representativeId === user!.id
-  );
-  const userClubIds = userClubs.map((club) => club.id);
+  const userClubs = useMemo(() => {
+    if (!user) return [];
+    return allClubs.filter((club) => club.representativeId === user.id);
+  }, [allClubs, user]);
+
+  const userClubIds = useMemo(() => userClubs.map((club) => club.id), [userClubs]);
 
   useEffect(() => {
     let expenses = allExpenses.filter((expense) =>
@@ -234,3 +237,5 @@ export function RepresentativeDashboard({ allClubs, allExpenses }: Representativ
     </div>
   );
 }
+
+    
