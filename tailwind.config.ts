@@ -95,10 +95,10 @@ export default {
         },
         glow: {
           '0%, 100%': {
-            boxShadow: `0 4px 14px 0 hsl(var(--primary) / 0.1), 0 0 8px 3px hsl(var(--primary) / 0.9)`,
+            boxShadow: `0 4px 14px 0 hsl(var(--primary) / 0.1), 0 0 8px 3px hsl(var(--primary) / 0.6)`,
           },
           '50%': {
-            boxShadow: `0 4px 14px 0 hsl(var(--primary) / 0.1), 0 0 25px 12px hsl(var(--primary) / 0.4)`,
+            boxShadow: `0 4px 14px 0 hsl(var(--primary) / 0.1), 0 0 25px 12px hsl(var(--primary) / 0.3)`,
           },
         }
       },
