@@ -61,7 +61,7 @@ export function ChatbotPopup() {
       setTimeout(() => {
         setShowMiniMessage(false);
       }, 5000); // Hide after 5 seconds
-    }, 15000); // Show every 15 seconds
+    }, 10000); // Show every 10 seconds
 
     return () => clearInterval(interval);
   }, [isOpen, miniMessageClosed]);
@@ -99,7 +99,7 @@ export function ChatbotPopup() {
             : 'opacity-0 translate-x-5 pointer-events-none'
         }`}
       >
-        <div className="bg-background p-3 rounded-lg ring-2 ring-primary/50 flex items-start">
+        <div className="bg-background p-3 rounded-lg shadow-lg shadow-primary/30 dark:shadow-primary/50 flex items-start">
           <span>Having trouble? Ask me anything! ⚡</span>
           <button
             onClick={handleCloseMiniMessage}
@@ -132,7 +132,7 @@ export function ChatbotPopup() {
         <PopoverContent
           side="top"
           align="end"
-          className="w-[400px] h-[500px] flex flex-col p-0 ring-2 ring-primary/50"
+          className="w-[400px] h-[500px] flex flex-col p-0 shadow-lg shadow-primary/40 dark:shadow-primary/60"
           sideOffset={16}
         >
           <div className="p-4 border-b">

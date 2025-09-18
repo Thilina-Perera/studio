@@ -30,18 +30,7 @@ import { Button } from '@/components/ui/button';
 import { AlertTriangle, DollarSign, PieChart, Sparkles, Users, BarChart2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EXPENSE_CATEGORIES, ExpenseCategory } from '@/lib/types';
-
-const categoryColors: { [key in ExpenseCategory]: string } = {
-    'Food & Beverage': '#FF0000',
-    'Stationary': '#0000FF',
-    'Event Materials': '#008000',
-    'Transport': '#FFA500',
-    'Venue': '#800080',
-    'Subscriptions': '#FFFF00',
-    'Advertising': '#00FFFF',
-    'Entertainment': '#FFC0CB',
-    'Other': '#808080',
-};
+import { useTheme } from 'next-themes';
 
 
 function AiRecommendations({ chartData }: { chartData: any[] }) {
@@ -116,8 +105,21 @@ function AiRecommendations({ chartData }: { chartData: any[] }) {
   );
 }
 
+const CATEGORY_COLORS: { [key in ExpenseCategory]: string } = {
+    'Food & Beverage': '#3b82f6', // blue-500
+    'Stationary': '#10b981', // green-500
+    'Event Materials': '#f97316', // orange-500
+    'Transport': '#ec4899', // pink-500
+    'Venue': '#8b5cf6', // violet-500
+    'Subscriptions': '#6366f1', // indigo-500
+    'Advertising': '#f59e0b', // amber-500
+    'Entertainment': '#d946ef', // fuchsia-500
+    'Other': '#6b7280', // gray-500
+  };
+  
 
 export default function BudgetTrackerPage() {
+  const { theme } = useTheme();
   const { clubs, expenses, loading } = useUser();
   const [chartType, setChartType] = useState<'bar' | 'pie'>('bar');
   const [selectedClub, setSelectedClub] = useState<any | null>(null);
@@ -169,14 +171,14 @@ export default function BudgetTrackerPage() {
 
   const chartConfig = useMemo(() => {
     const config: { [key: string]: { label: string; color: string; } } = {};
-    EXPENSE_CATEGORIES.forEach((category) => {
-       config[category] = {
-           label: category,
-           color: categoryColors[category],
-       };
+    EXPENSE_CATEGORIES.forEach(category => {
+      config[category] = {
+        label: category,
+        color: CATEGORY_COLORS[category],
+      };
     });
     return config;
- }, []);
+  }, []);
 
   const pieChartConfig = useMemo(() => {
     const config: { [key: string]: { label: string; color: string; } } = {};
@@ -187,7 +189,7 @@ export default function BudgetTrackerPage() {
        };
     });
     return config;
- }, [chartData]);
+  }, [chartData]);
 
  const selectedClubCategoryData = useMemo(() => {
     if (!selectedClub) return [];
@@ -288,7 +290,7 @@ export default function BudgetTrackerPage() {
                         <Bar
                             key={category}
                             dataKey={category}
-                            fill={categoryColors[category as ExpenseCategory]}
+                            fill={chartConfig[category as ExpenseCategory]?.color}
                             stackId="a"
                             radius={[4, 4, 0, 0]}
                         />
