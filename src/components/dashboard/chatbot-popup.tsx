@@ -99,7 +99,7 @@ export function ChatbotPopup() {
             : 'opacity-0 translate-x-5 pointer-events-none'
         }`}
       >
-        <div className="bg-background p-3 rounded-lg shadow-lg flex items-start">
+        <div className="bg-background p-3 rounded-lg ring-2 ring-primary/50 flex items-start">
           <span>Having trouble? Ask me anything! ⚡</span>
           <button
             onClick={handleCloseMiniMessage}
@@ -132,7 +132,7 @@ export function ChatbotPopup() {
         <PopoverContent
           side="top"
           align="end"
-          className="w-[400px] h-[500px] flex flex-col p-0"
+          className="w-[400px] h-[500px] flex flex-col p-0 ring-2 ring-primary/50"
           sideOffset={16}
         >
           <div className="p-4 border-b">
