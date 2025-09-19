@@ -1,6 +1,6 @@
 
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -27,7 +27,7 @@ import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Pie, PieChart as RechartsPi
 import { useUser } from '@/hooks/use-user';
 import { getBudgetRecommendations, BudgetAnalysisInput } from '@/ai/flows/budget-recommendations';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, DollarSign, PieChart, Sparkles, Users, BarChart2 } from 'lucide-react';
+import { AlertTriangle, DollarSign, PieChart, Sparkles, Users, BarChart2, RefreshCw } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EXPENSE_CATEGORIES, ExpenseCategory, Club, Expense } from '@/lib/types';
 import ReactMarkdown from 'react-markdown';
@@ -55,13 +55,26 @@ function AiRecommendations({ clubs, approvedExpenses }: AiRecommendationsProps) 
   const [recommendations, setRecommendations] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dataSignature, setDataSignature] = useState('');
 
-  const handleGetRecommendations = async () => {
+  // Create a stable "signature" of the input data to detect changes.
+  const currentSignature = useMemo(() => {
+    const summary = approvedExpenses.map(e => `${e.id}-${e.amount}`).join(',');
+    return `${clubs.length}-${approvedExpenses.length}-${summary}`;
+  }, [clubs, approvedExpenses]);
+  
+  const hasDataChanged = currentSignature !== dataSignature;
+
+  const handleGetRecommendations = useCallback(async (forceRefresh = false) => {
+    // If we have recommendations and data hasn't changed (and not forcing a refresh), do nothing.
+    if (recommendations && !hasDataChanged && !forceRefresh) {
+        return;
+    }
+
     setLoading(true);
     setError(null);
     setRecommendations('');
     
-    // 1. Aggregate data on the client-side
     const spendingData: BudgetAnalysisInput = clubs.map(club => {
       const clubExpenses = approvedExpenses.filter(e => e.clubId === club.id);
       const totalSpent = clubExpenses.reduce((sum, e) => sum + e.amount, 0);
@@ -73,7 +86,6 @@ function AiRecommendations({ clubs, approvedExpenses }: AiRecommendationsProps) 
     });
 
     try {
-      // 2. Pass aggregated data to the AI flow
       const result = await getBudgetRecommendations(spendingData);
       if (result.startsWith("QUOTA_ERROR:")) {
           throw new Error(result);
@@ -82,13 +94,14 @@ function AiRecommendations({ clubs, approvedExpenses }: AiRecommendationsProps) 
         throw new Error("The AI returned an empty response. Please try again when more data is available.");
       }
       setRecommendations(result);
+      setDataSignature(currentSignature); // Cache the signature of the data used
     } catch (e: any) {
         console.error("Error getting recommendations:", e);
         setError(e.message || "An unknown error occurred while generating recommendations.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [clubs, approvedExpenses, recommendations, hasDataChanged, currentSignature, dataSignature]);
 
   const renderError = () => {
     if (!error) return null;
@@ -128,9 +141,16 @@ function AiRecommendations({ clubs, approvedExpenses }: AiRecommendationsProps) 
                 Get AI-powered recommendations based on club spending.
             </CardDescription>
         </div>
-        <Button onClick={handleGetRecommendations} disabled={loading}>
-          {loading ? 'Analyzing...' : <><Sparkles className="mr-2 h-4 w-4" /> Get AI Insights</>}
-        </Button>
+         <div className="flex items-center gap-2">
+            <Button onClick={() => handleGetRecommendations(false)} disabled={loading}>
+            {loading ? 'Analyzing...' : (recommendations && !hasDataChanged) ? 'Show Cached Insights' : <><Sparkles className="mr-2 h-4 w-4" /> Get AI Insights</>}
+            </Button>
+            {recommendations && (
+                <Button variant="outline" size="icon" onClick={() => handleGetRecommendations(true)} disabled={loading} title="Force refresh">
+                    <RefreshCw className="h-4 w-4" />
+                </Button>
+            )}
+        </div>
       </CardHeader>
       <CardContent>
         {loading && (
