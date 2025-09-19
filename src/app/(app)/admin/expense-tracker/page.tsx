@@ -83,8 +83,7 @@ function AiRecommendations({ clubs, approvedExpenses }: AiRecommendationsProps) 
     } catch (e: any) {
         console.error("AI recommendation failed, using fallback:", e);
         const randomIndex = Math.floor(Math.random() * placeholderRecommendations.length);
-        let fallbackText = "*(This is a placeholder recommendation. The live AI service is currently unavailable.)*\n\n";
-        fallbackText += placeholderRecommendations[randomIndex];
+        const fallbackText = placeholderRecommendations[randomIndex];
         setRecommendations(fallbackText);
         setIsPlaceholder(true);
     } finally {
