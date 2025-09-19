@@ -62,8 +62,11 @@ export async function getBudgetRecommendations(): Promise<BudgetAnalysisOutput> 
     // 3. Call the AI flow with the aggregated data
     return await budgetRecommendationFlow(spendingData);
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching data from Firestore:", error);
+    if (error.code === 'PERMISSION_DENIED' || (error.message && error.message.includes('permission-denied'))) {
+        return "### Permission Denied\n\nCould not fetch club and expense data. The server environment is not authenticated. Please run `firebase login --reauth` in your terminal and try again.";
+    }
     return "### Error\n\nCould not fetch club and expense data from the database. Please check server logs.";
   }
 }
