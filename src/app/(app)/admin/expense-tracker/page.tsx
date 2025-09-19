@@ -58,7 +58,7 @@ function AiRecommendations() {
     setRecommendations('');
     try {
       const result = await getBudgetRecommendations();
-      if (result.startsWith("QUOTA_ERROR:")) {
+      if (result.startsWith("QUOTA_ERROR:") || result.startsWith("AUTH_ERROR:") || result.startsWith("DB_ERROR:")) {
           throw new Error(result);
       }
       if (!result) {
@@ -67,15 +67,69 @@ function AiRecommendations() {
       setRecommendations(result);
     } catch (e: any) {
         console.error("Error getting recommendations:", e);
-        if (e.message && e.message.includes("QUOTA_ERROR")) {
-            setError("You have exceeded your current API quota. Please check your Google AI plan and billing details, or try again later.");
-        } else {
-            setError(e.message || "An unknown error occurred while generating recommendations.");
-        }
+        setError(e.message || "An unknown error occurred while generating recommendations.");
     } finally {
       setLoading(false);
     }
   };
+
+  const renderError = () => {
+    if (!error) return null;
+
+    if (error.startsWith("AUTH_ERROR:")) {
+        return (
+             <div className="flex items-center gap-4 rounded-lg border border-destructive bg-destructive/10 p-4">
+               <AlertTriangle className="h-6 w-6 text-destructive" />
+               <div className="space-y-1">
+                 <p className="font-semibold text-destructive">Authentication Failed</p>
+                 <p className="text-sm text-destructive/80">The server couldn't access the database due to a permission error.</p>
+                 <div className="text-xs mt-2 text-destructive/80 space-y-1">
+                    <p>To fix this in your local development environment, run the following command in your terminal:</p>
+                    <code className="block rounded bg-black/20 px-2 py-1 font-mono text-xs">firebase login --reauth</code>
+                    <p>This will refresh your credentials and allow the server to connect securely.</p>
+                 </div>
+               </div>
+            </div>
+        )
+    }
+
+    if (error.startsWith("DB_ERROR:")) {
+         return (
+             <div className="flex items-center gap-4 rounded-lg border border-destructive bg-destructive/10 p-4">
+               <AlertTriangle className="h-6 w-6 text-destructive" />
+               <div className="space-y-1">
+                 <p className="font-semibold text-destructive">Database Error</p>
+                 <p className="text-sm text-destructive/80">{error.replace("DB_ERROR:", "").trim()}</p>
+               </div>
+            </div>
+        )
+    }
+    
+    if (error.startsWith("QUOTA_ERROR:")) {
+        return (
+             <div className="flex items-center gap-4 rounded-lg border border-destructive bg-destructive/10 p-4">
+               <AlertTriangle className="h-6 w-6 text-destructive" />
+               <div className="space-y-1">
+                 <p className="font-semibold text-destructive">Analysis Failed</p>
+                 <p className="text-sm text-destructive/80">{error.replace("QUOTA_ERROR:", "").trim()}</p>
+                 <p className="text-xs mt-2 text-destructive/80">
+                    The free tier of the AI model has a daily usage limit. For more information, please see the{' '}
+                    <Link href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" className="underline">
+                        Google AI documentation on rate limits
+                    </Link>.
+                 </p>
+               </div>
+            </div>
+        )
+    }
+
+    return (
+        <div className="flex items-center gap-4 rounded-lg border border-destructive bg-destructive/10 p-4">
+            <AlertTriangle className="h-6 w-6 text-destructive" />
+            <p className="text-sm text-destructive/80">{error}</p>
+        </div>
+    );
+  }
 
   return (
     <Card>
@@ -101,23 +155,7 @@ function AiRecommendations() {
             <Skeleton className="h-4 w-3/4" />
           </div>
         )}
-        {error && (
-            <div className="flex items-center gap-4 rounded-lg border border-destructive bg-destructive/10 p-4">
-               <AlertTriangle className="h-6 w-6 text-destructive" />
-               <div className="space-y-1">
-                 <p className="font-semibold text-destructive">Analysis Failed</p>
-                 <p className="text-sm text-destructive/80">{error.replace("QUOTA_ERROR:", "").trim()}</p>
-                 {error.includes("quota") && 
-                    <p className="text-xs mt-2 text-destructive/80">
-                        The free tier of the AI model has a daily usage limit. For more information, please see the{' '}
-                        <Link href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" className="underline">
-                            Google AI documentation on rate limits
-                        </Link>.
-                    </p>
-                }
-               </div>
-            </div>
-        )}
+        {error && renderError()}
         {recommendations && (
           <div
             className="prose prose-sm dark:prose-invert max-w-none"

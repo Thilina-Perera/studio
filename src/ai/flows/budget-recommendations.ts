@@ -64,10 +64,10 @@ export async function getBudgetRecommendations(): Promise<BudgetAnalysisOutput> 
 
   } catch (error: any) {
     console.error("Error fetching data from Firestore:", error);
-    if (error.code === 'PERMISSION_DENIED' || (error.message && error.message.includes('permission-denied'))) {
-        return "### Permission Denied\n\nCould not fetch club and expense data. The server environment is not authenticated. Please run `firebase login --reauth` in your terminal and try again.";
+    if (error.code === 'permission-denied' || error.code === 7 || (error.message && error.message.toLowerCase().includes('permission denied'))) {
+        return "AUTH_ERROR: Could not fetch club and expense data. The server environment is not authenticated. Please run `firebase login --reauth` in your terminal and try again.";
     }
-    return "### Error\n\nCould not fetch club and expense data from the database. Please check server logs.";
+    return "DB_ERROR: Could not fetch club and expense data from the database. Please check server logs for details.";
   }
 }
 
