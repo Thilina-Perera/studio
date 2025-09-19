@@ -57,29 +57,37 @@ const budgetRecommendationFlow = ai.defineFlow(
     outputSchema: BudgetAnalysisOutputSchema,
   },
   async (input) => {
-    // Check if the input JSON string is empty or just contains an empty array/object.
+    // Validate and parse the input JSON
     try {
-        const data = JSON.parse(input);
-        if (!data || (Array.isArray(data) && data.length === 0) || (typeof data === 'object' && Object.keys(data).length === 0)) {
-            return "### No Spending Data\n\nThere is no spending data available to analyze.";
-        }
+      const data = JSON.parse(input);
+
+      if (
+        !data ||
+        (Array.isArray(data) && data.length === 0) ||
+        (typeof data === 'object' && Object.keys(data).length === 0)
+      ) {
+        return "### No Spending Data\n\nThere is no spending data available to analyze.";
+      }
     } catch (e) {
-        return "### Invalid Data Format\n\nThe expense data file appears to be corrupted or not in a valid JSON format.";
+      return "### Invalid Data Format\n\nThe expense data file appears to be corrupted or not in a valid JSON format.";
     }
 
-    const { output } = await prompt(input);
-    
-    // Safety check: ensure output is always a string
-    let safeOutput: string;
+    let result: unknown;
 
-    if (typeof output === "string" && output.trim() !== "") {
-      safeOutput = output;
-    } else {
-      // Default fallback string if AI returns null/undefined
-      safeOutput = "### Recommendations\n- No recommendations available at this time. The AI model may have returned an empty response.";
+    try {
+      const { output } = await prompt(input);
+      result = output;
+    } catch (err) {
+      console.error("Prompt failed:", err);
+      return "### Error\n\nCould not generate recommendations. Please try again later.";
     }
-    
-    return safeOutput;
+
+    // Safety: Ensure result is always a string
+    if (typeof result === "string" && result.trim() !== "") {
+      return result;
+    }
+
+    // Fallback: schema requires a string in Markdown format
+    return "### Recommendations\n- No recommendations available at this time. The AI model returned an empty or invalid response.";
   }
 );
-
