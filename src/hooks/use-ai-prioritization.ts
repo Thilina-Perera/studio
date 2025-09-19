@@ -1,5 +1,5 @@
 'use client';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { prioritizeExpenses } from '@/ai/flows/prioritize-expenses';
 import type { Expense, PrioritizedExpense, Club, User } from '@/lib/types';
 
@@ -20,7 +20,6 @@ export function useAiPrioritization({ expenses, clubs, users }: UseAiPrioritizat
   const runPrioritization = useCallback(async () => {
     setLoading(true);
     setError(null);
-    setPrioritizedExpenses([]);
 
     const pendingExpenses = expenses.filter(e => ["Pending", "Under Review"].includes(e.status));
 
@@ -67,6 +66,11 @@ export function useAiPrioritization({ expenses, clubs, users }: UseAiPrioritizat
       setLoading(false);
     }
   }, [expenses, clubs, users]);
+
+  useEffect(() => {
+    // Automatically run prioritization when the component mounts or dependencies change.
+    runPrioritization();
+  }, [runPrioritization]);
 
   return { prioritizedExpenses, loading, error, runPrioritization };
 }
