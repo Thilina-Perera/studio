@@ -25,11 +25,11 @@ import {
 } from '@/components/ui/chart';
 import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Pie, PieChart as RechartsPieChart, Cell } from 'recharts';
 import { useUser } from '@/hooks/use-user';
-import { getBudgetRecommendations } from '@/ai/flows/budget-recommendations';
+import { getBudgetRecommendations, BudgetAnalysisInput } from '@/ai/flows/budget-recommendations';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, DollarSign, PieChart, Sparkles, Users, BarChart2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { EXPENSE_CATEGORIES, ExpenseCategory } from '@/lib/types';
+import { EXPENSE_CATEGORIES, ExpenseCategory, Club, Expense } from '@/lib/types';
 import ReactMarkdown from 'react-markdown';
 import Link from 'next/link';
 
@@ -46,8 +46,12 @@ const categoryColors: { [key in ExpenseCategory]: string } = {
     'Other': '#808080',
 };
 
+interface AiRecommendationsProps {
+  clubs: Club[];
+  approvedExpenses: Expense[];
+}
 
-function AiRecommendations() {
+function AiRecommendations({ clubs, approvedExpenses }: AiRecommendationsProps) {
   const [recommendations, setRecommendations] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,9 +60,22 @@ function AiRecommendations() {
     setLoading(true);
     setError(null);
     setRecommendations('');
+    
+    // 1. Aggregate data on the client-side
+    const spendingData: BudgetAnalysisInput = clubs.map(club => {
+      const clubExpenses = approvedExpenses.filter(e => e.clubId === club.id);
+      const totalSpent = clubExpenses.reduce((sum, e) => sum + e.amount, 0);
+      return {
+        clubName: club.name,
+        totalSpent,
+        expenseCount: clubExpenses.length,
+      };
+    });
+
     try {
-      const result = await getBudgetRecommendations();
-      if (result.startsWith("QUOTA_ERROR:") || result.startsWith("AUTH_ERROR:") || result.startsWith("DB_ERROR:")) {
+      // 2. Pass aggregated data to the AI flow
+      const result = await getBudgetRecommendations(spendingData);
+      if (result.startsWith("QUOTA_ERROR:")) {
           throw new Error(result);
       }
       if (!result) {
@@ -75,35 +92,6 @@ function AiRecommendations() {
 
   const renderError = () => {
     if (!error) return null;
-
-    if (error.startsWith("AUTH_ERROR:")) {
-        return (
-             <div className="flex items-center gap-4 rounded-lg border border-destructive bg-destructive/10 p-4">
-               <AlertTriangle className="h-6 w-6 text-destructive" />
-               <div className="space-y-1">
-                 <p className="font-semibold text-destructive">Authentication Failed</p>
-                 <p className="text-sm text-destructive/80">The server couldn't access the database due to a permission error.</p>
-                 <div className="text-xs mt-2 text-destructive/80 space-y-1">
-                    <p>To fix this in your local development environment, run the following command in your terminal:</p>
-                    <code className="block rounded bg-black/20 px-2 py-1 font-mono text-xs">firebase login --reauth</code>
-                    <p>This will refresh your credentials and allow the server to connect securely.</p>
-                 </div>
-               </div>
-            </div>
-        )
-    }
-
-    if (error.startsWith("DB_ERROR:")) {
-         return (
-             <div className="flex items-center gap-4 rounded-lg border border-destructive bg-destructive/10 p-4">
-               <AlertTriangle className="h-6 w-6 text-destructive" />
-               <div className="space-y-1">
-                 <p className="font-semibold text-destructive">Database Error</p>
-                 <p className="text-sm text-destructive/80">{error.replace("DB_ERROR:", "").trim()}</p>
-               </div>
-            </div>
-        )
-    }
     
     if (error.startsWith("QUOTA_ERROR:")) {
         return (
@@ -451,7 +439,7 @@ export default function BudgetTrackerPage() {
                 </Table>
             </CardContent>
         </Card>
-        <AiRecommendations />
+        <AiRecommendations clubs={clubs} approvedExpenses={approvedExpenses} />
       </div>
 
     </div>

@@ -2,7 +2,7 @@
 'use server';
 
 /**
- * @fileOverview An AI agent that analyzes aggregated club spending data from Firestore and provides budget recommendations.
+ * @fileOverview An AI agent that analyzes aggregated club spending data and provides budget recommendations.
  *
  * - getBudgetRecommendations - A function that handles the budget recommendation process.
  * - BudgetAnalysisInput - The input type for the getBudgetRecommendations function.
@@ -11,21 +11,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import {initializeApp, getApps, App} from 'firebase-admin/app';
-import {getFirestore, collection, getDocs} from 'firebase-admin/firestore';
-import type { Club, Expense } from '@/lib/types';
-
-
-// Initialize Firebase Admin SDK
-let adminApp: App;
-if (!getApps().length) {
-  adminApp = initializeApp();
-} else {
-  adminApp = getApps()[0];
-}
-
-const db = getFirestore(adminApp);
-
 
 const ClubSpendingInfoSchema = z.object({
   clubName: z.string().describe('The name of the student club.'),
@@ -39,36 +24,9 @@ export type BudgetAnalysisInput = z.infer<typeof BudgetAnalysisInputSchema>;
 const BudgetAnalysisOutputSchema = z.string().describe("The AI-generated recommendations in Markdown format.");
 export type BudgetAnalysisOutput = z.infer<typeof BudgetAnalysisOutputSchema>;
 
-export async function getBudgetRecommendations(): Promise<BudgetAnalysisOutput> {
-  try {
-    // 1. Fetch all clubs and expenses from Firestore
-    const clubsSnapshot = await getDocs(collection(db, 'clubs'));
-    const expensesSnapshot = await getDocs(collection(db, 'expenses'));
-
-    const clubs = clubsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Club));
-    const expenses = expensesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Expense));
-
-    // 2. Aggregate data
-    const spendingData: BudgetAnalysisInput = clubs.map(club => {
-      const clubExpenses = expenses.filter(e => e.clubId === club.id && e.status === 'Approved');
-      const totalSpent = clubExpenses.reduce((sum, e) => sum + e.amount, 0);
-      return {
-        clubName: club.name,
-        totalSpent,
-        expenseCount: clubExpenses.length,
-      };
-    });
-
-    // 3. Call the AI flow with the aggregated data
-    return await budgetRecommendationFlow(spendingData);
-
-  } catch (error: any) {
-    console.error("Error fetching data from Firestore:", error);
-    if (error.code === 'permission-denied' || error.code === 7 || (error.message && error.message.toLowerCase().includes('permission denied'))) {
-        return "AUTH_ERROR: Could not fetch club and expense data. The server environment is not authenticated. Please run `firebase login --reauth` in your terminal and try again.";
-    }
-    return "DB_ERROR: Could not fetch club and expense data from the database. Please check server logs for details.";
-  }
+export async function getBudgetRecommendations(spendingData: BudgetAnalysisInput): Promise<BudgetAnalysisOutput> {
+  // Call the AI flow with the aggregated data provided from the client
+  return await budgetRecommendationFlow(spendingData);
 }
 
 const prompt = ai.definePrompt({
