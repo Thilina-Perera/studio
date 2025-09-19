@@ -92,4 +92,3 @@ const budgetRecommendationFlow = ai.defineFlow(
     return "### Recommendations\n- No recommendations available at this time. The AI model returned an empty or invalid response.";
   }
 );
-
