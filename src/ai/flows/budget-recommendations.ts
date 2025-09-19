@@ -75,7 +75,7 @@ const budgetRecommendationFlow = ai.defineFlow(
     }
 
     const { output } = await prompt(input);
-
+    
     // This is the critical check. If the output is null or undefined, return a default string.
     if (output === null || output === undefined) {
       return "The AI analysis returned an empty result. This can happen if there isn't enough data to analyze or due to a temporary issue. Please try again later.";
