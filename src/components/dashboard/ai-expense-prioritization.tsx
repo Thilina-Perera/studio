@@ -53,7 +53,11 @@ export function AiExpensePrioritization({ expenses, clubs }: AiExpensePrioritiza
         <h2 className="text-2xl font-semibold tracking-tight">
           AI Priority Queue
         </h2>
-        <Button onClick={handleRunPrioritization} disabled={loading}>
+        <Button 
+          onClick={handleRunPrioritization} 
+          disabled={loading}
+          className="animate-glow"
+        >
           {loading ? 'Prioritizing...' : <><Sparkles className="mr-2 h-4 w-4" /> Prioritize with AI</>}
         </Button>
       </div>
