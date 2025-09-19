@@ -77,8 +77,12 @@ const budgetRecommendationFlow = ai.defineFlow(
     try {
       const { output } = await prompt(input);
       result = output;
-    } catch (err) {
+    } catch (err: any) {
       console.error("Prompt failed:", err);
+      // Check for quota-related errors in the error message
+      if (err.message && (err.message.includes("429") || err.message.includes("quota"))) {
+        return "QUOTA_ERROR: You have exceeded your current API quota. Please check your Google AI plan and billing details, or try again later.";
+      }
       return "### Error\n\nCould not generate recommendations. Please try again later.";
     }
 

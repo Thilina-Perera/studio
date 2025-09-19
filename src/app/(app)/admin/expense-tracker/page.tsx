@@ -58,14 +58,18 @@ function AiRecommendations() {
     setRecommendations('');
     try {
       const result = await getBudgetRecommendations();
-      // Check for an empty or null result from the server
+      // Check for specific error messages from the flow
+      if (result.startsWith("QUOTA_ERROR:")) {
+          throw new Error(result); // Throw to be caught by the catch block
+      }
       if (!result) {
         throw new Error("The AI returned an empty response. Please try again when more data is available.");
       }
       setRecommendations(result);
     } catch (e: any) {
         console.error("Error getting recommendations:", e);
-        if (e.message && (e.message.includes("429") || e.message.includes("quota"))) {
+        // Use a more specific check for quota errors
+        if (e.message && e.message.includes("QUOTA_ERROR")) {
             setError("You have exceeded your current API quota. Please check your Google AI plan and billing details, or try again later.");
         } else {
             setError(e.message || "An unknown error occurred while generating recommendations.");
@@ -104,7 +108,7 @@ function AiRecommendations() {
                <AlertTriangle className="h-6 w-6 text-destructive" />
                <div className="space-y-1">
                  <p className="font-semibold text-destructive">Analysis Failed</p>
-                 <p className="text-sm text-destructive/80">{error}</p>
+                 <p className="text-sm text-destructive/80">{error.replace("QUOTA_ERROR:", "").trim()}</p>
                  {error.includes("quota") && 
                     <p className="text-xs mt-2 text-destructive/80">
                         The free tier of the AI model has a daily usage limit. For more information, please see the{' '}
