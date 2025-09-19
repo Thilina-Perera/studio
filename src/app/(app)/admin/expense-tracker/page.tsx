@@ -55,6 +55,7 @@ function AiRecommendations({ chartData }: { chartData: any[] }) {
     setRecommendations('');
     try {
       const result = await getBudgetRecommendations(chartData.map(d => ({ clubName: d.club, totalSpent: d.total })));
+      // Check for an empty or null result from the server
       if (!result) {
         throw new Error("The AI returned an empty response. Please try again when more data is available.");
       }
