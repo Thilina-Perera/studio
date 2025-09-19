@@ -67,7 +67,7 @@ const budgetRecommendationFlow = ai.defineFlow(
         return "### Invalid Data Format\n\nThe `expense-data.json` file appears to be corrupted or not in a valid JSON format. Please correct the file and try again.";
     }
 
-    const { output } = (await prompt(input)) ?? {};
+    const { output } = await prompt(input);
 
     // This is the critical check. If the output is null or undefined, return a default string.
     if (output === null || output === undefined) {
