@@ -25,7 +25,7 @@ const BudgetAnalysisOutputSchema = z.string().describe("The AI-generated recomme
 export type BudgetAnalysisOutput = z.infer<typeof BudgetAnalysisOutputSchema>;
 
 export async function getBudgetRecommendations(spendingData: BudgetAnalysisInput): Promise<BudgetAnalysisOutput> {
-  // Call the AI flow with the aggregated data provided from the client
+  // This function is kept for potential future use with live AI, but is not currently called by the UI.
   return await budgetRecommendationFlow(spendingData);
 }
 
@@ -63,21 +63,7 @@ const budgetRecommendationFlow = ai.defineFlow(
     if (!input || input.length === 0) {
       return "### No Spending Data\n\nThere is no spending data available to analyze.";
     }
-
-    try {
-      const { output } = await prompt(input);
-      
-      if (typeof output === "string" && output.trim() !== "") {
-        return output;
-      }
-    } catch (err: any) {
-      console.error("Prompt failed:", err);
-      if (err.message && (err.message.includes("429") || err.message.includes("quota"))) {
-        return "QUOTA_ERROR: You have exceeded your current API quota. Please check your Google AI plan and billing details, or try again later.";
-      }
-      return "### Error\n\nCould not generate recommendations. The AI model may be temporarily unavailable.";
-    }
-
-    return "### Recommendations\n- No recommendations available at this time. The AI model returned an empty or invalid response.";
+    const { output } = await prompt(input);
+    return output || "No recommendations available.";
   }
 );

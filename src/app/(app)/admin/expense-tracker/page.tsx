@@ -54,41 +54,16 @@ interface AiRecommendationsProps {
 function AiRecommendations({ clubs, approvedExpenses }: AiRecommendationsProps) {
   const [recommendations, setRecommendations] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isPlaceholder, setIsPlaceholder] = useState(false);
 
-  const handleGetRecommendations = async () => {
+  const handleGetRecommendations = () => {
     setLoading(true);
-    setError(null);
-    setIsPlaceholder(false);
-
-    const clubSpendingData: BudgetAnalysisInput = clubs.map(club => {
-        const clubExpenses = approvedExpenses.filter(exp => exp.clubId === club.id);
-        const totalSpent = clubExpenses.reduce((sum, exp) => sum + exp.amount, 0);
-        return {
-            clubName: club.name,
-            totalSpent,
-            expenseCount: clubExpenses.length
-        };
-    }).filter(c => c.totalSpent > 0);
-
-    try {
-        const result = await getBudgetRecommendations(clubSpendingData);
-
-        if (result && result.trim() !== "") {
-            setRecommendations(result);
-        } else {
-            throw new Error("AI model returned an empty response.");
-        }
-    } catch (e: any) {
-        console.error("AI recommendation failed, using fallback:", e);
+    // Simulate a brief loading period
+    setTimeout(() => {
         const randomIndex = Math.floor(Math.random() * placeholderRecommendations.length);
         const fallbackText = placeholderRecommendations[randomIndex];
         setRecommendations(fallbackText);
-        setIsPlaceholder(true);
-    } finally {
         setLoading(false);
-    }
+    }, 500);
   };
 
   return (
