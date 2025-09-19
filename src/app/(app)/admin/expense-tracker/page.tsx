@@ -31,6 +31,7 @@ import { AlertTriangle, DollarSign, PieChart, Sparkles, Users, BarChart2 } from 
 import { Skeleton } from '@/components/ui/skeleton';
 import { EXPENSE_CATEGORIES, ExpenseCategory } from '@/lib/types';
 import ReactMarkdown from 'react-markdown';
+import Link from 'next/link';
 
 
 const categoryColors: { [key in ExpenseCategory]: string } = {
@@ -63,8 +64,12 @@ function AiRecommendations() {
       }
       setRecommendations(result);
     } catch (e: any) {
-      console.error("Error getting recommendations:", e);
-      setError(e.message || "An unknown error occurred while generating recommendations.");
+        console.error("Error getting recommendations:", e);
+        if (e.message && (e.message.includes("429") || e.message.includes("quota"))) {
+            setError("You have exceeded your current API quota. Please check your Google AI plan and billing details, or try again later.");
+        } else {
+            setError(e.message || "An unknown error occurred while generating recommendations.");
+        }
     } finally {
       setLoading(false);
     }
@@ -100,6 +105,14 @@ function AiRecommendations() {
                <div className="space-y-1">
                  <p className="font-semibold text-destructive">Analysis Failed</p>
                  <p className="text-sm text-destructive/80">{error}</p>
+                 {error.includes("quota") && 
+                    <p className="text-xs mt-2 text-destructive/80">
+                        The free tier of the AI model has a daily usage limit. For more information, please see the{' '}
+                        <Link href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" className="underline">
+                            Google AI documentation on rate limits
+                        </Link>.
+                    </p>
+                }
                </div>
             </div>
         )}
