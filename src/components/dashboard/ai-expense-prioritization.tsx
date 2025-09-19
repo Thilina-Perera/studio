@@ -3,7 +3,7 @@ import { PrioritizedList } from './prioritized-list';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '../ui/skeleton';
 import { AlertTriangle, Sparkles } from 'lucide-react';
-import type { Club, Expense } from '@/lib/types';
+import type { Club, Expense, User } from '@/lib/types';
 import { useAiPrioritization } from '@/hooks/use-ai-prioritization';
 import { Button } from '../ui/button';
 import Link from 'next/link';
@@ -37,10 +37,11 @@ function PrioritizedListSkeleton() {
 interface AiExpensePrioritizationProps {
   expenses: Expense[];
   clubs: Club[];
+  users: User[];
 }
 
-export function AiExpensePrioritization({ expenses, clubs }: AiExpensePrioritizationProps) {
-  const { prioritizedExpenses, loading, error, runPrioritization } = useAiPrioritization({ expenses });
+export function AiExpensePrioritization({ expenses, clubs, users }: AiExpensePrioritizationProps) {
+  const { prioritizedExpenses, loading, error, runPrioritization } = useAiPrioritization({ expenses, clubs, users });
 
   const handleRunPrioritization = () => {
     runPrioritization();

@@ -1,16 +1,21 @@
 'use client';
 import { useState, useCallback } from 'react';
 import { prioritizeExpenses } from '@/ai/flows/prioritize-expenses';
-import type { Expense, PrioritizedExpense } from '@/lib/types';
+import type { Expense, PrioritizedExpense, Club, User } from '@/lib/types';
 
 interface UseAiPrioritizationProps {
   expenses: Expense[];
+  clubs: Club[];
+  users: User[];
 }
 
-export function useAiPrioritization({ expenses }: UseAiPrioritizationProps) {
+export function useAiPrioritization({ expenses, clubs, users }: UseAiPrioritizationProps) {
   const [prioritizedExpenses, setPrioritizedExpenses] = useState<PrioritizedExpense[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const getClubName = (clubId: string) => clubs.find(c => c.id === clubId)?.name || 'Unknown Club';
+  const getSubmitterName = (submitterId: string) => users.find(u => u.id === submitterId)?.name || 'Unknown User';
 
   const runPrioritization = useCallback(async () => {
     setLoading(true);
@@ -29,6 +34,8 @@ export function useAiPrioritization({ expenses }: UseAiPrioritizationProps) {
       expenseId: e.id,
       description: e.description,
       amount: e.amount,
+      clubName: e.clubName || getClubName(e.clubId),
+      submitterName: e.submitterName || getSubmitterName(e.submitterId),
     }));
 
     try {
@@ -59,7 +66,7 @@ export function useAiPrioritization({ expenses }: UseAiPrioritizationProps) {
     } finally {
       setLoading(false);
     }
-  }, [expenses]);
+  }, [expenses, clubs, users]);
 
   return { prioritizedExpenses, loading, error, runPrioritization };
 }

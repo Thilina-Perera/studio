@@ -115,7 +115,7 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
         <ExpenseReportDialog expenses={filteredExpenses} clubs={allClubs} users={users} />
       </div>
 
-      <AiExpensePrioritization expenses={allExpenses} clubs={allClubs} />
+      <AiExpensePrioritization expenses={allExpenses} clubs={allClubs} users={users} />
 
       <Card>
         <CardHeader>

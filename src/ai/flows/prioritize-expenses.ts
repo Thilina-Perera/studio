@@ -16,6 +16,8 @@ const PrioritizeExpensesInputSchema = z.array(
     expenseId: z.string().describe('The unique identifier for the expense.'),
     description: z.string().describe('A detailed description of the expense.'),
     amount: z.number().describe('The amount of the expense.'),
+    clubName: z.string().describe('The name of the club submitting the expense.'),
+    submitterName: z.string().describe('The name of the person who submitted the expense.'),
   })
 );
 export type PrioritizeExpensesInput = z.infer<typeof PrioritizeExpensesInputSchema>;
@@ -26,18 +28,21 @@ const PrioritizeExpensesOutputSchema = z.array(
     priorityScore: z
       .number()
       .describe(
-        'A score indicating the priority of the expense, with higher scores indicating higher priority.'
+        'A score from 1-10 indicating the priority, with 10 being the highest. Base the score on urgency (e.g., time-sensitive items), relevance to the club\'s purpose (e.g., educational materials for an academic club), and potential impact.'
       ),
     reason: z
       .string()
       .describe(
-        'The reason for the assigned priority score, based on urgency and relevance.'
+        'A concise reason for the score, referencing the description, club, and amount.'
       ),
   })
 );
 export type PrioritizeExpensesOutput = z.infer<typeof PrioritizeExpensesOutputSchema>;
 
 export async function prioritizeExpenses(input: PrioritizeExpensesInput): Promise<PrioritizeExpensesOutput> {
+  if (input.length === 0) {
+    return [];
+  }
   return prioritizeExpensesFlow(input);
 }
 
@@ -45,15 +50,19 @@ const prompt = ai.definePrompt({
   name: 'prioritizeExpensesPrompt',
   input: {schema: PrioritizeExpensesInputSchema},
   output: {schema: PrioritizeExpensesOutputSchema},
-  prompt: `You are a finance expert tasked with prioritizing expense reimbursements based on urgency and relevance.
+  prompt: `You are a finance expert for a university, tasked with prioritizing expense reimbursements. Your goal is to identify the most critical expenses that need immediate attention.
 
-Analyze the following expenses and assign a priority score (higher is more urgent) and a reason for the score. Return the output in JSON format.
+Analyze the following expenses. Consider the club's name (e.g., educational vs. social), the expense description, and the amount to assign a priority score from 1 (lowest) to 10 (highest). Provide a concise reason for your score.
+
+Return the output in JSON format.
 
 Expenses:
 {{#each this}}
 - Expense ID: {{expenseId}}
+  Club: {{clubName}}
+  Submitter: {{submitterName}}
   Description: {{description}}
-  Amount: {{amount}}
+  Amount: \${{amount}}
 {{/each}}`,
 });
 
@@ -65,7 +74,6 @@ const prioritizeExpensesFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    return output || [];
   }
 );
-
