@@ -61,19 +61,25 @@ const budgetRecommendationFlow = ai.defineFlow(
     try {
         const data = JSON.parse(input);
         if (!data || (Array.isArray(data) && data.length === 0) || (typeof data === 'object' && Object.keys(data).length === 0)) {
-            return "### No Spending Data\n\nThere is no spending data in the provided file to analyze. Please check `expense-data.json` to ensure it contains club expense information.";
+            return "### No Spending Data\n\nThere is no spending data available to analyze.";
         }
     } catch (e) {
-        return "### Invalid Data Format\n\nThe `expense-data.json` file appears to be corrupted or not in a valid JSON format. Please correct the file and try again.";
+        return "### Invalid Data Format\n\nThe expense data file appears to be corrupted or not in a valid JSON format.";
     }
 
     const { output } = await prompt(input);
     
-    // This is the critical check. If the output is null or undefined, return a default string.
-    if (output === null || output === undefined) {
-      return "The AI analysis returned an empty result. This can happen if there isn't enough data to analyze or due to a temporary issue. Please try again later.";
+    // Safety check: ensure output is always a string
+    let safeOutput: string;
+
+    if (typeof output === "string" && output.trim() !== "") {
+      safeOutput = output;
+    } else {
+      // Default fallback string if AI returns null/undefined
+      safeOutput = "### Recommendations\n- No recommendations available at this time. The AI model may have returned an empty response.";
     }
     
-    return output;
+    return safeOutput;
   }
 );
+
