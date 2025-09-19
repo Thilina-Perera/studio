@@ -13,7 +13,6 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { openAI } from 'genkitx-openai';
 
 // The input is now a JSON string containing the expense data.
 const BudgetAnalysisInputSchema = z.string().describe('A JSON string representing the list of clubs and their expenses.');
@@ -29,16 +28,10 @@ export async function getBudgetRecommendations(): Promise<BudgetAnalysisOutput> 
   return budgetRecommendationFlow(jsonData);
 }
 
-const deepseek = openAI({
-    apiKey: process.env.DEEPSEEK_API_KEY as string,
-    baseURL: 'https://api.deepseek.com/v1'
-});
-
 const prompt = ai.definePrompt({
   name: 'budgetRecommendationPrompt',
   input: { schema: BudgetAnalysisInputSchema },
   output: { schema: BudgetAnalysisOutputSchema },
-  model: deepseek('deepseek/deepseek-chat'),
   prompt: `You are a financial advisor for a university student organization. Your task is to analyze the spending of various student clubs from the provided JSON data and provide actionable recommendations.
 
 Analyze the following JSON club spending data:
