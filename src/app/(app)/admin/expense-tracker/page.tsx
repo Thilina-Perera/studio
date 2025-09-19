@@ -1,6 +1,6 @@
 
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -26,10 +26,12 @@ import {
 import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Pie, PieChart as RechartsPieChart, Cell } from 'recharts';
 import { useUser } from '@/hooks/use-user';
 import { Button } from '@/components/ui/button';
-import { DollarSign, PieChart, Sparkles, Users, BarChart2 } from 'lucide-react';
+import { DollarSign, PieChart, Sparkles, Users, BarChart2, RefreshCw, AlertTriangle } from 'lucide-react';
 import { EXPENSE_CATEGORIES, ExpenseCategory, Club, Expense } from '@/lib/types';
 import ReactMarkdown from 'react-markdown';
 import { placeholderRecommendations } from '@/lib/placeholder-recommendations';
+import { getBudgetRecommendations, BudgetAnalysisInput } from '@/ai/flows/budget-recommendations';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 
 const categoryColors: { [key in ExpenseCategory]: string } = {
@@ -51,10 +53,43 @@ interface AiRecommendationsProps {
 
 function AiRecommendations({ clubs, approvedExpenses }: AiRecommendationsProps) {
   const [recommendations, setRecommendations] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isPlaceholder, setIsPlaceholder] = useState(false);
 
-  const handleGetRecommendations = () => {
-    const randomIndex = Math.floor(Math.random() * placeholderRecommendations.length);
-    setRecommendations(placeholderRecommendations[randomIndex]);
+  const handleGetRecommendations = async () => {
+    setLoading(true);
+    setError(null);
+    setIsPlaceholder(false);
+
+    const clubSpendingData: BudgetAnalysisInput = clubs.map(club => {
+        const clubExpenses = approvedExpenses.filter(exp => exp.clubId === club.id);
+        const totalSpent = clubExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+        return {
+            clubName: club.name,
+            totalSpent,
+            expenseCount: clubExpenses.length
+        };
+    }).filter(c => c.totalSpent > 0);
+
+    try {
+        const result = await getBudgetRecommendations(clubSpendingData);
+
+        if (result && result.trim() !== "") {
+            setRecommendations(result);
+        } else {
+            throw new Error("AI model returned an empty response.");
+        }
+    } catch (e: any) {
+        console.error("AI recommendation failed, using fallback:", e);
+        const randomIndex = Math.floor(Math.random() * placeholderRecommendations.length);
+        let fallbackText = "*(This is a placeholder recommendation. The live AI service is currently unavailable.)*\n\n";
+        fallbackText += placeholderRecommendations[randomIndex];
+        setRecommendations(fallbackText);
+        setIsPlaceholder(true);
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (
@@ -67,13 +102,20 @@ function AiRecommendations({ clubs, approvedExpenses }: AiRecommendationsProps) 
             </CardDescription>
         </div>
          <div className="flex items-center gap-2">
-            <Button onClick={handleGetRecommendations}>
-                <Sparkles className="mr-2 h-4 w-4" /> Get AI Insights
+            <Button onClick={handleGetRecommendations} disabled={loading}>
+                {loading ? 'Generating...' : <><Sparkles className="mr-2 h-4 w-4" /> Get AI Insights</>}
             </Button>
         </div>
       </CardHeader>
       <CardContent>
-        {recommendations ? (
+        {loading ? (
+            <div className="flex justify-center items-center py-8">
+                <div className="space-y-2 text-center">
+                    <RefreshCw className="mx-auto h-8 w-8 animate-spin text-primary" />
+                    <p className="text-muted-foreground">Analyzing spending data...</p>
+                </div>
+            </div>
+        ) : recommendations ? (
           <div
             className="prose prose-sm dark:prose-invert max-w-none"
           >
@@ -145,7 +187,7 @@ export default function BudgetTrackerPage() {
     EXPENSE_CATEGORIES.forEach((category) => {
        config[category] = {
            label: category,
-           color: categoryColors[category],
+           color: categoryColors[category as ExpenseCategory],
        };
     });
     return config;
