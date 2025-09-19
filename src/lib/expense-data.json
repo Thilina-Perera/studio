@@ -1,0 +1,19 @@
+
+[
+  {
+    "clubName": "Book Club",
+    "totalSpent": 50.00
+  },
+  {
+    "clubName": "Coding Club",
+    "totalSpent": 250.50
+  },
+  {
+    "clubName": "Art Club",
+    "totalSpent": 120.75
+  },
+  {
+    "clubName": "Music Club",
+    "totalSpent": 0
+  }
+]

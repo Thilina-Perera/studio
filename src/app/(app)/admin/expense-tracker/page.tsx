@@ -30,6 +30,8 @@ import { Button } from '@/components/ui/button';
 import { AlertTriangle, DollarSign, PieChart, Sparkles, Users, BarChart2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EXPENSE_CATEGORIES, ExpenseCategory } from '@/lib/types';
+import ReactMarkdown from 'react-markdown';
+
 
 const categoryColors: { [key in ExpenseCategory]: string } = {
     'Food & Beverage': '#FF0000',
@@ -44,7 +46,7 @@ const categoryColors: { [key in ExpenseCategory]: string } = {
 };
 
 
-function AiRecommendations({ chartData }: { chartData: any[] }) {
+function AiRecommendations() {
   const [recommendations, setRecommendations] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +56,7 @@ function AiRecommendations({ chartData }: { chartData: any[] }) {
     setError(null);
     setRecommendations('');
     try {
-      const result = await getBudgetRecommendations(chartData.map(d => ({ clubName: d.club, totalSpent: d.total })));
+      const result = await getBudgetRecommendations();
       // Check for an empty or null result from the server
       if (!result) {
         throw new Error("The AI returned an empty response. Please try again when more data is available.");
@@ -104,8 +106,9 @@ function AiRecommendations({ chartData }: { chartData: any[] }) {
         {recommendations && (
           <div
             className="prose prose-sm dark:prose-invert max-w-none"
-            dangerouslySetInnerHTML={{ __html: recommendations.replace(/\n/g, '<br />') }}
-          />
+          >
+            <ReactMarkdown>{recommendations}</ReactMarkdown>
+          </div>
         )}
          {!loading && !error && !recommendations && (
             <p className="text-center text-muted-foreground py-8">
@@ -395,7 +398,7 @@ export default function BudgetTrackerPage() {
                 </Table>
             </CardContent>
         </Card>
-        <AiRecommendations chartData={chartData} />
+        <AiRecommendations />
       </div>
 
     </div>
