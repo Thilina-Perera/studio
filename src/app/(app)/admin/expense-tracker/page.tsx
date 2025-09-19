@@ -58,9 +58,8 @@ function AiRecommendations() {
     setRecommendations('');
     try {
       const result = await getBudgetRecommendations();
-      // Check for specific error messages from the flow
       if (result.startsWith("QUOTA_ERROR:")) {
-          throw new Error(result); // Throw to be caught by the catch block
+          throw new Error(result);
       }
       if (!result) {
         throw new Error("The AI returned an empty response. Please try again when more data is available.");
@@ -68,7 +67,6 @@ function AiRecommendations() {
       setRecommendations(result);
     } catch (e: any) {
         console.error("Error getting recommendations:", e);
-        // Use a more specific check for quota errors
         if (e.message && e.message.includes("QUOTA_ERROR")) {
             setError("You have exceeded your current API quota. Please check your Google AI plan and billing details, or try again later.");
         } else {
