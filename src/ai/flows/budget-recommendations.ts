@@ -18,6 +18,9 @@ import { openAI } from 'genkitx-openai';
 const deepseek = openAI({
   apiKey: process.env.DEEPSEEK_API_KEY,
   baseURL: 'https://api.deepseek.com/v1',
+  headers: {
+    'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+  }
 });
 
 // The input is now a JSON string containing the expense data.
