@@ -1,6 +1,6 @@
 
 'use client';
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -25,13 +25,11 @@ import {
 } from '@/components/ui/chart';
 import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Pie, PieChart as RechartsPieChart, Cell } from 'recharts';
 import { useUser } from '@/hooks/use-user';
-import { getBudgetRecommendations, BudgetAnalysisInput } from '@/ai/flows/budget-recommendations';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, DollarSign, PieChart, Sparkles, Users, BarChart2, RefreshCw } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { DollarSign, PieChart, Sparkles, Users, BarChart2 } from 'lucide-react';
 import { EXPENSE_CATEGORIES, ExpenseCategory, Club, Expense } from '@/lib/types';
 import ReactMarkdown from 'react-markdown';
-import Link from 'next/link';
+import { placeholderRecommendations } from '@/lib/placeholder-recommendations';
 
 
 const categoryColors: { [key in ExpenseCategory]: string } = {
@@ -53,84 +51,11 @@ interface AiRecommendationsProps {
 
 function AiRecommendations({ clubs, approvedExpenses }: AiRecommendationsProps) {
   const [recommendations, setRecommendations] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [dataSignature, setDataSignature] = useState('');
 
-  // Create a stable "signature" of the input data to detect changes.
-  const currentSignature = useMemo(() => {
-    const summary = approvedExpenses.map(e => `${e.id}-${e.amount}`).join(',');
-    return `${clubs.length}-${approvedExpenses.length}-${summary}`;
-  }, [clubs, approvedExpenses]);
-  
-  const hasDataChanged = currentSignature !== dataSignature;
-
-  const handleGetRecommendations = useCallback(async (forceRefresh = false) => {
-    // If we have recommendations and data hasn't changed (and not forcing a refresh), do nothing.
-    if (recommendations && !hasDataChanged && !forceRefresh) {
-        return;
-    }
-
-    setLoading(true);
-    setError(null);
-    setRecommendations('');
-    
-    const spendingData: BudgetAnalysisInput = clubs.map(club => {
-      const clubExpenses = approvedExpenses.filter(e => e.clubId === club.id);
-      const totalSpent = clubExpenses.reduce((sum, e) => sum + e.amount, 0);
-      return {
-        clubName: club.name,
-        totalSpent,
-        expenseCount: clubExpenses.length,
-      };
-    });
-
-    try {
-      const result = await getBudgetRecommendations(spendingData);
-      if (result.startsWith("QUOTA_ERROR:")) {
-          throw new Error(result);
-      }
-      if (!result) {
-        throw new Error("The AI returned an empty response. Please try again when more data is available.");
-      }
-      setRecommendations(result);
-      setDataSignature(currentSignature); // Cache the signature of the data used
-    } catch (e: any) {
-        console.error("Error getting recommendations:", e);
-        setError(e.message || "An unknown error occurred while generating recommendations.");
-    } finally {
-      setLoading(false);
-    }
-  }, [clubs, approvedExpenses, recommendations, hasDataChanged, currentSignature, dataSignature]);
-
-  const renderError = () => {
-    if (!error) return null;
-    
-    if (error.startsWith("QUOTA_ERROR:")) {
-        return (
-             <div className="flex items-center gap-4 rounded-lg border border-destructive bg-destructive/10 p-4">
-               <AlertTriangle className="h-6 w-6 text-destructive" />
-               <div className="space-y-1">
-                 <p className="font-semibold text-destructive">Analysis Failed</p>
-                 <p className="text-sm text-destructive/80">{error.replace("QUOTA_ERROR:", "").trim()}</p>
-                 <p className="text-xs mt-2 text-destructive/80">
-                    The free tier of the AI model has a daily usage limit. For more information, please see the{' '}
-                    <Link href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" className="underline">
-                        Google AI documentation on rate limits
-                    </Link>.
-                 </p>
-               </div>
-            </div>
-        )
-    }
-
-    return (
-        <div className="flex items-center gap-4 rounded-lg border border-destructive bg-destructive/10 p-4">
-            <AlertTriangle className="h-6 w-6 text-destructive" />
-            <p className="text-sm text-destructive/80">{error}</p>
-        </div>
-    );
-  }
+  const handleGetRecommendations = () => {
+    const randomIndex = Math.floor(Math.random() * placeholderRecommendations.length);
+    setRecommendations(placeholderRecommendations[randomIndex]);
+  };
 
   return (
     <Card>
@@ -142,36 +67,19 @@ function AiRecommendations({ clubs, approvedExpenses }: AiRecommendationsProps) 
             </CardDescription>
         </div>
          <div className="flex items-center gap-2">
-            <Button onClick={() => handleGetRecommendations(false)} disabled={loading}>
-            {loading ? 'Analyzing...' : (recommendations && !hasDataChanged) ? 'Show Cached Insights' : <><Sparkles className="mr-2 h-4 w-4" /> Get AI Insights</>}
+            <Button onClick={handleGetRecommendations}>
+                <Sparkles className="mr-2 h-4 w-4" /> Get AI Insights
             </Button>
-            {recommendations && (
-                <Button variant="outline" size="icon" onClick={() => handleGetRecommendations(true)} disabled={loading} title="Force refresh">
-                    <RefreshCw className="h-4 w-4" />
-                </Button>
-            )}
         </div>
       </CardHeader>
       <CardContent>
-        {loading && (
-          <div className="space-y-4">
-            <Skeleton className="h-4 w-1/3" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-             <Skeleton className="h-4 w-1/3 mt-4" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-          </div>
-        )}
-        {error && renderError()}
-        {recommendations && (
+        {recommendations ? (
           <div
             className="prose prose-sm dark:prose-invert max-w-none"
           >
             <ReactMarkdown>{recommendations}</ReactMarkdown>
           </div>
-        )}
-         {!loading && !error && !recommendations && (
+        ) : (
             <p className="text-center text-muted-foreground py-8">
                 Click the button to generate expense recommendations.
             </p>
