@@ -72,11 +72,13 @@ const budgetRecommendationFlow = ai.defineFlow(
       return "### Invalid Data Format\n\nThe expense data file appears to be corrupted or not in a valid JSON format.";
     }
 
-    let result: unknown;
-
     try {
       const { output } = await prompt(input);
-      result = output;
+      
+      // Safety check: ensure output is always a string
+      if (typeof output === "string" && output.trim() !== "") {
+        return output;
+      }
     } catch (err: any) {
       console.error("Prompt failed:", err);
       // Check for quota-related errors in the error message
@@ -86,12 +88,8 @@ const budgetRecommendationFlow = ai.defineFlow(
       return "### Error\n\nCould not generate recommendations. Please try again later.";
     }
 
-    // Safety: Ensure result is always a string
-    if (typeof result === "string" && result.trim() !== "") {
-      return result;
-    }
-
     // Fallback: schema requires a string in Markdown format
     return "### Recommendations\n- No recommendations available at this time. The AI model returned an empty or invalid response.";
   }
 );
+
