@@ -39,6 +39,7 @@ export function ChatbotPopup() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [showMiniMessage, setShowMiniMessage] = useState(false);
   const [miniMessageClosed, setMiniMessageClosed] = useState(false);
+  const [isShaking, setIsShaking] = useState(false);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -58,6 +59,11 @@ export function ChatbotPopup() {
 
     const interval = setInterval(() => {
       setShowMiniMessage(true);
+      setIsShaking(true);
+      setTimeout(() => {
+        setIsShaking(false);
+      }, 820); // Match animation duration
+
       setTimeout(() => {
         setShowMiniMessage(false);
       }, 5000); // Hide after 5 seconds
@@ -122,7 +128,9 @@ export function ChatbotPopup() {
         <PopoverTrigger asChild>
           <Button
             variant="default"
-            className="fixed bottom-8 right-8 rounded-full w-16 h-16 shadow-lg z-50"
+            className={`fixed bottom-8 right-8 rounded-full w-16 h-16 shadow-lg z-50 ${
+              isShaking ? 'shake' : ''
+            }`}
             onClick={() => setShowMiniMessage(false)}
           >
             <Bot className="h-8 w-8" />
