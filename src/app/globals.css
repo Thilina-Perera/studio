@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -28,6 +29,11 @@ body {
     --input: 214.3 31.8% 91.4%;
     --ring: 212 73% 29%;
     --radius: 0.5rem;
+    --chart-1: 220 80% 60%;
+    --chart-2: 150 80% 40%;
+    --chart-3: 40 90% 60%;
+    --chart-4: 340 80% 60%;
+    --chart-5: 280 80% 60%;
     --sidebar-background: 222.2 84% 4.9%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 210 40% 98%;
@@ -57,6 +63,11 @@ body {
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212 73% 29%;
+    --chart-1: 220 80% 60%;
+    --chart-2: 150 80% 40%;
+    --chart-3: 40 90% 60%;
+    --chart-4: 340 80% 60%;
+    --chart-5: 280 80% 60%;
     --sidebar-background: 222.2 84% 4.9%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 210 40% 98%;
