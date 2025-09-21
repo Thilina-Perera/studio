@@ -65,7 +65,7 @@ function AiRecommendations({ chartData }: { chartData: any[] }) {
                 Get AI-powered recommendations based on club spending.
             </CardDescription>
         </div>
-        <Button onClick={handleGetRecommendations} disabled={loading}>
+        <Button onClick={handleGetRecommendations} disabled={loading} className="animate-glow">
           {loading ? 'Analyzing...' : <><Sparkles className="mr-2 h-4 w-4" /> Get AI Insights</>}
         </Button>
       </CardHeader>
@@ -321,8 +321,7 @@ export default function BudgetTrackerPage() {
                                 >
                                     {(selectedClub ? selectedClubCategoryData : chartData).map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={selectedClub? chartConfig[entry.name as ExpenseCategory]?.color : pieChartConfig[entry.club]?.color} />
-                                    ))}
-                                </Pie>
+                                    ))}</Pie>
                                 <ChartLegend content={<ChartLegendContent />} />
                             </RechartsPieChart>
                         </ChartContainer>
