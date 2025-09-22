@@ -136,6 +136,8 @@ export default function BudgetTrackerPage() {
       );
 
       return {
+        id: club.id,
+        name: club.name,
         club: club.name,
         total: totalAmount,
         ...categorySpending,
@@ -295,11 +297,12 @@ export default function BudgetTrackerPage() {
                     <Treemap
                         data={chartData}
                         dataKey="total"
+                        // @ts-ignore
                         ratio={4 / 3}
                         stroke={theme === 'dark' ? '#fff' : '#000'}
                         fill="#8884d8"
                         content={<CustomizedContent colors={CATEGORY_COLORS} />}
-                        nameKey="club"
+                        nameKey="name"
                     />
                 </ResponsiveContainer>
 
@@ -325,7 +328,7 @@ export default function BudgetTrackerPage() {
                                     labelLine={false}
                                     label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
                                 >
-                                    {(selectedClub ? selectedClubCategoryData : chartData).map((entry, index) => (
+                                    {(selectedClub ? selectedClubCategoryData : chartData).map((entry: any, index) => (
                                         <Cell key={`cell-${index}`} fill={selectedClub? chartConfig[entry.name as ExpenseCategory]?.color : pieChartConfig[entry.club]?.color} />
                                     ))}</Pie>
                                 <ChartLegend content={<ChartLegendContent />} />
@@ -349,8 +352,8 @@ export default function BudgetTrackerPage() {
                             </Button>
                             {chartData.map((club) => (
                                 <Button
-                                    key={club.club}
-                                    variant={selectedClub?.club === club.club ? 'secondary' : 'ghost'}
+                                    key={club.id}
+                                    variant={selectedClub?.id === club.id ? 'secondary' : 'ghost'}
                                     className="w-full justify-start"
                                     onClick={() => setSelectedClub(club)}
                                 >
@@ -390,7 +393,7 @@ export default function BudgetTrackerPage() {
                     </TableHeader>
                     <TableBody>
                         {chartData.map((data) => (
-                            <TableRow key={data.club}>
+                            <TableRow key={data.id}>
                                 <TableCell className="font-medium">{data.club}</TableCell>
                                 <TableCell className="text-right">${data.total.toFixed(2)}</TableCell>
                                 <TableCell className="text-right">{data.expenseCount}</TableCell>
