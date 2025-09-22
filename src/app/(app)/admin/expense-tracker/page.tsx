@@ -23,11 +23,11 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart';
-import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Pie, PieChart as RechartsPieChart, Cell, Treemap, ResponsiveContainer } from 'recharts';
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Pie, PieChart as RechartsPieChart, Cell } from 'recharts';
 import { useUser } from '@/hooks/use-user';
 import { getBudgetRecommendations } from '@/ai/flows/budget-recommendations';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, DollarSign, PieChart, Sparkles, Users, BarChart2, LayoutGrid } from 'lucide-react';
+import { AlertTriangle, DollarSign, PieChart, Sparkles, Users, BarChart2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EXPENSE_CATEGORIES, ExpenseCategory } from '@/lib/types';
 import { useTheme } from 'next-themes';
@@ -65,7 +65,7 @@ function AiRecommendations({ chartData }: { chartData: any[] }) {
                 Get AI-powered recommendations based on club spending.
             </CardDescription>
         </div>
-        <Button onClick={handleGetRecommendations} disabled={loading} className="animate-glow">
+        <Button onClick={handleGetRecommendations} disabled={loading}>
           {loading ? 'Analyzing...' : <><Sparkles className="mr-2 h-4 w-4" /> Get AI Insights</>}
         </Button>
       </CardHeader>
@@ -121,7 +121,7 @@ const CATEGORY_COLORS: { [key in ExpenseCategory]: string } = {
 export default function BudgetTrackerPage() {
   const { theme } = useTheme();
   const { clubs, expenses, loading } = useUser();
-  const [chartType, setChartType] = useState<'bar' | 'pie' | 'treemap'>('bar');
+  const [chartType, setChartType] = useState<'bar' | 'pie'>('bar');
   const [selectedClub, setSelectedClub] = useState<any | null>(null);
 
   const approvedExpenses = useMemo(() => {
@@ -257,10 +257,6 @@ export default function BudgetTrackerPage() {
                 <PieChart className="h-4 w-4" />
                 <span className="sr-only">Pie Chart</span>
             </Button>
-            <Button variant={chartType === 'treemap' ? 'default' : 'outline'} size="icon" onClick={() => setChartType('treemap')}>
-                <LayoutGrid className="h-4 w-4" />
-                <span className="sr-only">Treemap</span>
-            </Button>
         </div>
         </CardHeader>
         <CardContent>
@@ -269,7 +265,7 @@ export default function BudgetTrackerPage() {
                 <p>Loading chart data...</p>
             </div>
           ) : chartData.length > 0 && approvedExpenses.length > 0 ? (
-            <div className="min-h-[450px]">
+            <>
             {chartType === 'bar' ? (
                 <ChartContainer config={chartConfig} className="min-h-[400px] w-full">
                 <BarChart data={chartData} accessibilityLayer>
@@ -301,20 +297,7 @@ export default function BudgetTrackerPage() {
                     ))}
                 </BarChart>
                 </ChartContainer>
-            ) : chartType === 'treemap' ? (
-                 <ResponsiveContainer width="100%" height={450}>
-                    <Treemap
-                        data={chartData}
-                        dataKey="total"
-                        ratio={4 / 3}
-                        stroke={theme === 'dark' ? '#fff' : '#000'}
-                        fill="#8884d8"
-                        content={<CustomizedContent colors={CATEGORY_COLORS} />}
-                        nameKey="club"
-                    />
-                </ResponsiveContainer>
-
-            ) : ( // Pie chart
+            ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
                     <div className="md:col-span-2">
                         <ChartContainer
@@ -338,7 +321,8 @@ export default function BudgetTrackerPage() {
                                 >
                                     {(selectedClub ? selectedClubCategoryData : chartData).map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={selectedClub? chartConfig[entry.name as ExpenseCategory]?.color : pieChartConfig[entry.club]?.color} />
-                                    ))}</Pie>
+                                    ))}
+                                </Pie>
                                 <ChartLegend content={<ChartLegendContent />} />
                             </RechartsPieChart>
                         </ChartContainer>
@@ -372,7 +356,7 @@ export default function BudgetTrackerPage() {
                     </Card>
                 </div>
             )}
-            </div>
+            </>
           ) : (
              <div className="flex items-center justify-center min-h-[300px]">
                 <p className="text-center text-muted-foreground">No approved expenses to display.</p>
@@ -418,28 +402,3 @@ export default function BudgetTrackerPage() {
     </div>
   );
 }
-
-const CustomizedContent = ({ root, depth, x, y, width, height, index, payload, rank, name, colors }: any) => {
-  const clubName = name || root?.payload?.club;
-  return (
-    <g>
-      <rect
-        x={x}
-        y={y}
-        width={width}
-        height={height}
-        style={{
-          fill: depth < 2 ? colors[clubName as keyof typeof colors] || '#8884d8' : 'none',
-          stroke: '#fff',
-          strokeWidth: 2 / (depth + 1e-10),
-          strokeOpacity: 1 / (depth + 1e-10),
-        }}
-      />
-      {depth === 1 && width > 50 && height > 25 ? (
-        <text x={x + width / 2} y={y + height / 2 + 7} textAnchor="middle" fill="#fff" fontSize={14}>
-          {clubName}
-        </text>
-      ) : null}
-    </g>
-  );
-};
