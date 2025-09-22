@@ -46,7 +46,7 @@ export default function Home() {
               </div>
               <Image
                 alt="Financial Security"
-                className="mx-auto aspect-[16/9] overflow-hidden rounded-xl object-cover object-center sm:w-full lg:order-last"
+                className="mx-auto overflow-hidden rounded-xl object-cover object-center sm:w-full lg:order-last"
                 data-ai-hint="finance security"
                 height="450"
                 src="https://storage.googleapis.com/AI_FRAMEWORK_AGENTS_IMGS/images/user_ce9e58bd-0f62-4217-a065-27a9775f0a20.png"
