@@ -67,10 +67,5 @@ export function useAiPrioritization({ expenses, clubs, users }: UseAiPrioritizat
     }
   }, [expenses, clubs, users]);
 
-  useEffect(() => {
-    // Automatically run prioritization when the component mounts or dependencies change.
-    runPrioritization();
-  }, [runPrioritization]);
-
   return { prioritizedExpenses, loading, error, runPrioritization };
 }
