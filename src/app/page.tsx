@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Briefcase, CreditCard, Rocket, Shield } from 'lucide-react';
@@ -44,11 +45,11 @@ export default function Home() {
                 </div>
               </div>
               <Image
-                alt="ReimburseAI Dashboard"
+                alt="Financial Security"
                 className="mx-auto aspect-[16/9] overflow-hidden rounded-xl object-cover object-center sm:w-full lg:order-last"
-                data-ai-hint="dashboard finance"
+                data-ai-hint="finance security"
                 height="450"
-                src="https://placehold.co/700x450.png"
+                src="https://storage.googleapis.com/AI_FRAMEWORK_AGENTS_IMGS/images/user_ce9e58bd-0f62-4217-a065-27a9775f0a20.png"
                 width="700"
               />
             </div>
