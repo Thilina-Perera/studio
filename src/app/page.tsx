@@ -45,11 +45,11 @@ export default function Home() {
                 </div>
               </div>
               <Image
-                alt="Financial Security"
+                alt="Financial Technology"
                 className="mx-auto overflow-hidden rounded-xl object-cover object-center sm:w-full lg:order-last"
-                data-ai-hint="finance security"
+                data-ai-hint="finance technology"
                 height="450"
-                src="https://storage.googleapis.com/AI_FRAMEWORK_AGENTS_IMGS/images/user_ce9e58bd-0f62-4217-a065-27a9775f0a20.png"
+                src="https://picsum.photos/seed/123/700/450"
                 width="700"
               />
             </div>
