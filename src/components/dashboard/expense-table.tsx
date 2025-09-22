@@ -313,14 +313,14 @@ export function ExpenseTable({ expenses, clubs, users = [] }: ExpenseTableProps)
         </Table>
       </div>
       <Dialog open={!!receiptToView} onOpenChange={(isOpen) => !isOpen && setReceiptToView(null)}>
-        <DialogContent className={cn("max-w-2xl", isPdf && "h-[90vh]")}>
+        <DialogContent className={cn("max-w-2xl", isPdf ? "h-[90vh]" : "max-h-[90vh]")}>
             <DialogHeader>
                 <DialogTitle>View Receipt</DialogTitle>
                 <DialogDescription>
                     Attached receipt for the expense.
                 </DialogDescription>
             </DialogHeader>
-            <div className="flex justify-center items-center h-full">
+            <div className="flex justify-center items-center min-h-[400px]">
               {receiptToView && (
                 isPdf ? (
                   <embed src={receiptToView} type="application/pdf" width="100%" height="100%" />
