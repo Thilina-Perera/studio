@@ -2,12 +2,6 @@
 pipeline {
     agent any
 
-    environment {
-        // This is where you can define environment-specific variables
-        // For example, you might have different variables for development and production
-        // CI = true
-    }
-
     stages {
         stage('Checkout') {
             steps {
