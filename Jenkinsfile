@@ -6,7 +6,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Get the code from your repository
-                git branch: 'main', url: 'https://github.com/Thilina-Perera/studio.git'
+                git branch: 'master', url: 'https://github.com/Thilina-Perera/studio.git'
             }
         }
 
