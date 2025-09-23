@@ -38,7 +38,7 @@ export function StudentDashboard({ allClubs, allExpenses }: StudentDashboardProp
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Welcome, {user!.name}
+            Welcome, {user!.name}!
           </h1>
           <p className="text-muted-foreground">
             Here's an overview of your submitted expenses.
