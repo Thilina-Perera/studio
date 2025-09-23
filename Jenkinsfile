@@ -26,9 +26,18 @@ pipeline {
 
         stage('E2E Tests') {
             steps {
+                // Start the Next.js app in the background
+                sh 'npm run dev &'
+                // Wait for the app to start
+                sh 'sleep 10'
                 // Run your Cypress End-to-End tests
-                // This command runs the tests in headless mode
                 sh 'npx cypress run'
+            }
+            post {
+                always {
+                    // Stop the Next.js app
+                    sh 'kill $(lsof -t -i:9002)'
+                }
             }
         }
 
