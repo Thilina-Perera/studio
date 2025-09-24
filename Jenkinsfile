@@ -2,22 +2,35 @@
 pipeline {
     agent any
 
-    // Automatically install and configure NodeJS. 
-    // This removes the need for manual Jenkins tool configuration.
-    tools {
-        nodejs '20.10.0'
-    }
-
     environment {
-        // Define a variable for the Cypress browser
+        NODEJS_VERSION = '20.10.0'
         CYPRESS_BROWSER = 'chrome'
     }
 
     stages {
-        stage('Setup') {
+        stage('Setup Node.js') {
             steps {
-                // The 'nodejs' tool is now automatically in the PATH.
-                cleanWs()
+                script {
+                    cleanWs()
+                    if (isUnix()) {
+                        sh "wget https://nodejs.org/dist/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-linux-x64.tar.xz"
+                        sh "tar -xf node-v${NODEJS_VERSION}-linux-x64.tar.xz"
+                        env.PATH = "${pwd()}/node-v${NODEJS_VERSION}-linux-x64/bin:${env.PATH}"
+                        sh 'node --version'
+                        sh 'npm --version'
+                    } else { // Assuming Windows
+                        bat "curl.exe -L -o node.zip https://nodejs.org/dist/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-win-x64.zip"
+                        unzip 'node.zip'
+                        env.PATH = "${pwd()}/node-v${NODEJS_VERSION}-win-x64;${env.PATH}"
+                        bat 'node --version'
+                        bat 'npm --version'
+                    }
+                }
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
                 sh 'npm install'
             }
         }
@@ -26,25 +39,18 @@ pipeline {
             steps {
                 script {
                     try {
-                        // Start the Next.js app and the Firestore emulator in the background
                         sh 'npm run dev &'
                         sh 'firebase emulators:start --only firestore &'
-                        
-                        // Wait for the app to be fully ready before starting tests
                         sh 'npx wait-on http://localhost:9002'
-
-                        // Run the Cypress tests
                         sh "npx cypress run --browser ${CYPRESS_BROWSER}"
                     } catch (e) {
                         currentBuild.result = 'FAILURE'
                         throw e
                     } finally {
-                        // Use OS-specific commands to kill the background processes
                         if (isUnix()) {
                             sh 'kill $(lsof -t -i:9002) || true'
                             sh 'kill $(lsof -t -i:8080) || true'
                         } else {
-                            // For Windows, use the 'bat' step.
                             bat """for /f "tokens=5" %%a in ('netstat -aon ^| findstr "9002"') do taskkill /F /PID %%a"""
                             bat """for /f "tokens=5" %%a in ('netstat -aon ^| findstr "8080"') do taskkill /F /PID %%a"""
                         }
@@ -56,11 +62,8 @@ pipeline {
 
     post {
         always {
-            // Archive test results and screenshots for later analysis
             archiveArtifacts artifacts: 'cypress/screenshots/**', allowEmptyArchive: true
             archiveArtifacts artifacts: 'cypress/videos/**', allowEmptyArchive: true
-
-            // Use the JUnit plugin to publish test results
             junit 'cypress/results/*.xml'
         }
     }
