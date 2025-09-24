@@ -2,9 +2,13 @@
 pipeline {
     agent any
 
+    // Automatically install and configure NodeJS. 
+    // This removes the need for manual Jenkins tool configuration.
+    tools {
+        nodejs '20.10.0'
+    }
+
     environment {
-        // Use a specific Node.js version for consistency
-        NODEJS_VERSION = '20.10.0'
         // Define a variable for the Cypress browser
         CYPRESS_BROWSER = 'chrome'
     }
@@ -12,25 +16,15 @@ pipeline {
     stages {
         stage('Setup') {
             steps {
-                script {
-                    // Clean the workspace to ensure no old files interfere
-                    cleanWs()
-
-                    // Use the NodeJS tool to manage the Node.js installation
-                    def nodeHome = tool name: NODEJS_VERSION, type: 'nodejs'
-                    env.PATH = "${nodeHome}/bin:${env.PATH}"
-                    
-                    // Install project dependencies inside the script block
-                    // to ensure the correct npm version is used.
-                    sh 'npm install'
-                }
+                // The 'nodejs' tool is now automatically in the PATH.
+                cleanWs()
+                sh 'npm install'
             }
         }
 
         stage('Run Tests') {
             steps {
                 script {
-                    // Use a try-catch-finally block to ensure cleanup happens
                     try {
                         // Start the Next.js app and the Firestore emulator in the background
                         sh 'npm run dev &'
@@ -42,18 +36,15 @@ pipeline {
                         // Run the Cypress tests
                         sh "npx cypress run --browser ${CYPRESS_BROWSER}"
                     } catch (e) {
-                        // If any step in the try block fails, mark the build as failed
                         currentBuild.result = 'FAILURE'
-                        throw e // Re-throw the exception to stop the pipeline
+                        throw e
                     } finally {
-                        // This block will run whether the try block succeeded or failed
                         // Use OS-specific commands to kill the background processes
                         if (isUnix()) {
                             sh 'kill $(lsof -t -i:9002) || true'
                             sh 'kill $(lsof -t -i:8080) || true'
                         } else {
                             // For Windows, use the 'bat' step.
-                            // The '%' must be escaped as '%%' in a bat file/step.
                             bat """for /f "tokens=5" %%a in ('netstat -aon ^| findstr "9002"') do taskkill /F /PID %%a"""
                             bat """for /f "tokens=5" %%a in ('netstat -aon ^| findstr "8080"') do taskkill /F /PID %%a"""
                         }
@@ -69,7 +60,7 @@ pipeline {
             archiveArtifacts artifacts: 'cypress/screenshots/**', allowEmptyArchive: true
             archiveArtifacts artifacts: 'cypress/videos/**', allowEmptyArchive: true
 
-            // Use the JUnit plugin to publish test results, which helps in tracking test trends
+            // Use the JUnit plugin to publish test results
             junit 'cypress/results/*.xml'
         }
     }
