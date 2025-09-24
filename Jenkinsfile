@@ -19,9 +19,11 @@ pipeline {
                     // Use the NodeJS tool to manage the Node.js installation
                     def nodeHome = tool name: NODEJS_VERSION, type: 'nodejs'
                     env.PATH = "${nodeHome}/bin:${env.PATH}"
+                    
+                    // Install project dependencies inside the script block
+                    // to ensure the correct npm version is used.
+                    sh 'npm install'
                 }
-                // Install project dependencies
-                sh 'npm install'
             }
         }
 
@@ -45,8 +47,15 @@ pipeline {
                         throw e // Re-throw the exception to stop the pipeline
                     } finally {
                         // This block will run whether the try block succeeded or failed
-                        sh 'kill $(lsof -t -i:9002) || true'
-                        sh 'kill $(lsof -t -i:8080) || true'
+                        // Use OS-specific commands to kill the background processes
+                        if (isUnix()) {
+                            sh 'kill $(lsof -t -i:9002) || true'
+                            sh 'kill $(lsof -t -i:8080) || true'
+                        } else {
+                            // For Windows, use taskkill. The /F flag forces termination.
+                            sh 'for /f "tokens=5" %a in ('netstat -aon ^| findstr "9002"') do taskkill /F /PID %a'
+                            sh 'for /f "tokens=5" %a in ('netstat -aon ^| findstr "8080"') do taskkill /F /PID %a'
+                        }
                     }
                 }
             }
