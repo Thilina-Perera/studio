@@ -36,7 +36,7 @@ pipeline {
             post {
                 always {
                     // Stop the Next.js app
-                    sh 'kill $(lsof -t -i:9002)'
+                    sh 'npx kill-port 9002'
                 }
             }
         }
