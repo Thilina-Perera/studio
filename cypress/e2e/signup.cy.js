@@ -1,15 +1,15 @@
+
 describe('Sign Up', () => {
   beforeEach(() => {
-    // Navigate to the signup page before each test
+    // Clear the Firestore emulator before each test
+    cy.task('clearFirestore');
+    // Navigate to the signup page
     cy.visit('/signup');
   });
 
   it('TC-07: User can sign up with valid information', () => {
-    // Use a unique email for each test run to ensure a clean state
-    const uniqueEmail = `testuser_${Date.now()}@example.com`;
-
     cy.get('input[placeholder="John Doe"]').type('Test User');
-    cy.get('input[placeholder="m@example.com"]').type(uniqueEmail);
+    cy.get('input[placeholder="m@example.com"]').type('test@example.com');
     cy.get('input[type="password"]').type('password123');
     cy.get('button[type="submit"]').contains('Create account').click();
 
@@ -19,10 +19,18 @@ describe('Sign Up', () => {
   });
 
   it('TC-08: User sees an error when signing up with an existing email', () => {
+    // First, sign up a user to ensure the email exists
     cy.get('input[placeholder="John Doe"]').type('Test User');
-    // Use an email that is already registered
-    cy.get('input[placeholder="m@example.com"]').type('m@example.com'); 
+    cy.get('input[placeholder="m@example.com"]').type('test@example.com');
     cy.get('input[type="password"]').type('password123');
+    cy.get('button[type="submit"]').contains('Create account').click();
+    cy.url().should('include', '/dashboard');
+
+    // Now, go back to signup and try to use the same email
+    cy.visit('/signup');
+    cy.get('input[placeholder="John Doe"]').type('Another User');
+    cy.get('input[placeholder="m@example.com"]').type('test@example.com');
+    cy.get('input[type="password"]').type('password456');
     cy.get('button[type="submit"]').contains('Create account').click();
 
     // Assert that an error toast is shown
@@ -31,8 +39,6 @@ describe('Sign Up', () => {
   });
 
   it('TC-06: Sign Up link navigates to the correct page', () => {
-    // This test case is covered by the beforeEach hook, 
-    // but we can add an explicit assertion for clarity.
     cy.url().should('include', '/signup');
     cy.contains('h2', 'Create an account').should('be.visible');
   });

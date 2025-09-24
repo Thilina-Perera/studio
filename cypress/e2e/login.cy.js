@@ -1,17 +1,30 @@
+
 describe('Login', () => {
+  const userEmail = 'test@example.com';
+  const userPassword = 'password123';
+
   beforeEach(() => {
-    // Navigate to the login page before each test
+    // Clear the Firestore emulator and create a user for login tests
+    cy.task('clearFirestore');
+    cy.visit('/signup');
+    cy.get('input[placeholder="John Doe"]').type('Test User');
+    cy.get('input[placeholder="m@example.com"]').type(userEmail);
+    cy.get('input[type="password"]').type(userPassword);
+    cy.get('button[type="submit"]').contains('Create account').click();
+    cy.url().should('include', '/dashboard');
+
+    // "Log out" by clearing cookies and visit the login page
+    cy.clearCookies();
     cy.visit('/');
   });
 
   it('TC-01: Valid user login with correct credentials', () => {
-    cy.get('input[placeholder="m@example.com"]').type('m@example.com');
-    cy.get('input[type="password"]').type('123456');
+    cy.get('input[placeholder="m@example.com"]').type(userEmail);
+    cy.get('input[type="password"]').type(userPassword);
     cy.get('button[type="submit"]').click();
 
     // Assert that the user is redirected to the dashboard
     cy.url().should('include', '/dashboard');
-    // Assert that some dashboard-specific element is visible
     cy.contains('h1', 'Dashboard').should('be.visible');
   });
 
