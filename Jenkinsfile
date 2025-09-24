@@ -1,6 +1,6 @@
 // Jenkinsfile (Declarative pipeline with Poll SCM + E2E)
 pipeline {
-  agent { docker { image 'node:18-bullseye' } }
+  agent any
 
   environment {
     CI = 'true'
