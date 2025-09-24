@@ -30,6 +30,9 @@ export function StudentDashboard({ allClubs, allExpenses }: StudentDashboardProp
   const pendingAmount = userExpenses
     .filter((e) => e.status === 'Pending' || e.status === 'Under Review')
     .reduce((sum, e) => sum + e.amount, 0);
+  const approvedAmount = userExpenses
+    .filter((e) => e.status === 'Approved')
+    .reduce((sum, e) => sum + e.amount, 0);
     
   const isStudent = role === 'student';
 
@@ -48,7 +51,7 @@ export function StudentDashboard({ allClubs, allExpenses }: StudentDashboardProp
       </div>
 
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
@@ -65,6 +68,15 @@ export function StudentDashboard({ allClubs, allExpenses }: StudentDashboardProp
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${pendingAmount.toFixed(2)}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Approved Amount</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${approvedAmount.toFixed(2)}</div>
           </CardContent>
         </Card>
       </div>
