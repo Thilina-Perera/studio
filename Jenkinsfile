@@ -52,9 +52,10 @@ pipeline {
                             sh 'kill $(lsof -t -i:9002) || true'
                             sh 'kill $(lsof -t -i:8080) || true'
                         } else {
-                            // For Windows, use taskkill. The /F flag forces termination.
-                            sh 'for /f "tokens=5" %a in ('netstat -aon ^| findstr "9002"') do taskkill /F /PID %a'
-                            sh 'for /f "tokens=5" %a in ('netstat -aon ^| findstr "8080"') do taskkill /F /PID %a'
+                            // For Windows, use the 'bat' step.
+                            // The '%' must be escaped as '%%' in a bat file/step.
+                            bat """for /f "tokens=5" %%a in ('netstat -aon ^| findstr "9002"') do taskkill /F /PID %%a"""
+                            bat """for /f "tokens=5" %%a in ('netstat -aon ^| findstr "8080"') do taskkill /F /PID %%a"""
                         }
                     }
                 }
