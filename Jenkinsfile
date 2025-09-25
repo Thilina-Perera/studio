@@ -39,7 +39,7 @@ pipeline {
     stage('Unit Tests') {
       steps {
         sh 'npm run test'
-        junit allowEmptyResults: false, testResults: 'test-results/junit.xml'
+        junit testResults: 'test-results/junit.xml'
       }
     }
 
@@ -50,6 +50,9 @@ pipeline {
     }
 
     stage('E2E Tests') {
+      options {
+        timeout(time: 15, unit: 'MINUTES')
+      }
       steps {
         // Cypress/Playwright E2E tests (make sure package.json has "e2e" script)
         sh 'npm run e2e'
@@ -60,7 +63,7 @@ pipeline {
 
     stage('Archive') {
       steps {
-        archiveArtifacts artifacts: '.next/**, out/**', fingerprint: true, allowEmptyArchive: true
+        archiveArtifacts artifacts: '.next/**, out/** dext-config.js', fingerprint: true, allowEmptyArchive: true
       }
     }
   }
