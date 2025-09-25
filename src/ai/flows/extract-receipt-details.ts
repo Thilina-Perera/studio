@@ -13,20 +13,20 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { EXPENSE_CATEGORIES } from '@/lib/types';
 
-export const ReceiptDetailsInputSchema = z.object({
+const ReceiptDetailsInputSchema = z.object({
   receiptDataUri: z
     .string()
     .describe(
       "A photo of a receipt, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
 });
-export type ReceiptDetailsInput = z.infer<typeof ReceiptDetailsInputSchema>;
+type ReceiptDetailsInput = z.infer<typeof ReceiptDetailsInputSchema>;
 
-export const ReceiptDetailsOutputSchema = z.object({
+const ReceiptDetailsOutputSchema = z.object({
   amount: z.number().describe('The total amount of the expense. Extract this from the total or final amount on the receipt.'),
   category: z.enum(EXPENSE_CATEGORIES).describe('The most likely category for the expense based on the items or store name.'),
 });
-export type ReceiptDetailsOutput = z.infer<typeof ReceiptDetailsOutputSchema>;
+type ReceiptDetailsOutput = z.infer<typeof ReceiptDetailsOutputSchema>;
 
 export async function extractReceiptDetails(input: ReceiptDetailsInput): Promise<ReceiptDetailsOutput> {
   return extractReceiptDetailsFlow(input);

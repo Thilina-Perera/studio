@@ -53,6 +53,11 @@ const formSchema = z.object({
   receiptDataUri: z.string().min(1, 'A receipt is required for Quick Submit.'),
 });
 
+// Define types needed for the server action call locally
+type ReceiptDetailsInput = {
+  receiptDataUri: string;
+}
+
 export function QuickExpenseDialog() {
   const [isOpen, setIsOpen] = useState(false);
   const { user, role, clubs } = useUser();
