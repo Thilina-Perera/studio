@@ -32,7 +32,7 @@ pipeline {
 
     stage('Lint') {
       steps {
-        sh 'echo '{"extends": "next/core-web-vitals"}' > .eslintrc.json'
+        writeFile file: '.eslintrc.json', text: '{"extends": "next/core-web-vitals"}'
         sh 'npm run lint'
       }
     }
@@ -64,7 +64,7 @@ pipeline {
 
     stage('Archive') {
       steps {
-        archiveArtifacts artifacts: '.next/**, out/** dext-config.js', fingerprint: true, allowEmptyArchive: true
+        archiveArtifacts artifacts: '.next/**, next.config.ts, tsconfig.json, package.json', fingerprint: true, allowEmptyArchive: true
       }
     }
   }
