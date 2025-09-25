@@ -32,6 +32,7 @@ pipeline {
 
     stage('Lint') {
       steps {
+        sh 'echo '{"extends": "next/core-web-vitals"}' > .eslintrc.json'
         sh 'npm run lint'
       }
     }
