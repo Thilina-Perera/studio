@@ -25,6 +25,7 @@ import {
 } from '../ui/select';
 import { DateRangePicker } from '../ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
+import { QuickExpenseDialog } from './quick-expense-dialog';
 
 interface RepresentativeDashboardProps {
   allClubs: Club[];
@@ -167,9 +168,12 @@ export function RepresentativeDashboard({ allClubs, allExpenses }: Representativ
               Browse and manage your club's submitted expenses.
             </CardDescription>
           </div>
-          <Button asChild>
-            <Link href="/expenses/new">New Expense</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <QuickExpenseDialog />
+            <Button asChild>
+              <Link href="/expenses/new">New Expense</Link>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
         <div className="flex flex-wrap gap-2">
