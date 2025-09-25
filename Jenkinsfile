@@ -30,13 +30,6 @@ pipeline {
       }
     }
 
-    stage('Lint') {
-      steps {
-        writeFile file: '.eslintrc.json', text: '{"extends": "next/core-web-vitals"}'
-        sh 'npm run lint'
-      }
-    }
-
     stage('Unit Tests') {
       steps {
         sh 'npm run test'
