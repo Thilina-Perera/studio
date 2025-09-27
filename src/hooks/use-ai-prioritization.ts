@@ -13,11 +13,14 @@ export function useAiPrioritization({ expenses, clubs, users }: UseAiPrioritizat
   const [prioritizedExpenses, setPrioritizedExpenses] = useState<PrioritizedExpense[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(false);
 
   const getClubName = (clubId: string) => clubs.find(c => c.id === clubId)?.name || 'Unknown Club';
   const getSubmitterName = (submitterId: string) => users.find(u => u.id === submitterId)?.name || 'Unknown User';
 
   const runPrioritization = useCallback(async () => {
+    if (cooldown) return;
+
     setLoading(true);
     setError(null);
 
@@ -57,15 +60,18 @@ export function useAiPrioritization({ expenses, clubs, users }: UseAiPrioritizat
       setPrioritizedExpenses(enrichedExpenses);
     } catch (e: any) {
       console.error("Error prioritizing expenses:", e);
-      if (e.message && (e.message.includes("429") || e.message.includes("quota"))) {
-        setError("You have exceeded your current API quota. Please check your Google AI plan and billing details, or try again later.");
+      if (e.message && (e.message.includes("429") || e.message.includes("quota") || e.message.includes("503"))) {
+        setError("The AI service is currently busy or you've exceeded your request limit. Please wait a moment before trying again.");
       } else {
         setError(e.message || "An unknown error occurred.");
       }
+       // Start cooldown on error
+      setCooldown(true);
+      setTimeout(() => setCooldown(false), 5000); // 5-second cooldown
     } finally {
       setLoading(false);
     }
-  }, [expenses, clubs, users]);
+  }, [expenses, clubs, users, cooldown]);
 
-  return { prioritizedExpenses, loading, error, runPrioritization };
+  return { prioritizedExpenses, loading, error, cooldown, runPrioritization };
 }
