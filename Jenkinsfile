@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main',
+                git branch: 'master',
                     url: 'https://github.com/Thilina-Perera/studio.git'
             }
         }
@@ -23,37 +23,37 @@ pipeline {
                     }
                     
                     // Setup Node.js
-                    sh """
+                    sh '''
                     nvm install ${env.NODE_VERSION}
                     nvm use ${env.NODE_VERSION}
                     node --version
                     npm --version
-                    """
+                    '''
                 }
             }
         }
         
         stage('Install Dependencies') {
             steps {
-                sh """
+                sh '''
                 npm ci --silent
-                """
+                '''
             }
         }
         
         stage('TypeScript Compilation') {
             steps {
-                sh """
+                sh '''
                 npm run build
-                """
+                '''
             }
         }
         
         stage('Unit Tests') {
             steps {
-                sh """
+                sh '''
                 npm test -- --coverage --watchAll=false
-                """
+                '''
             }
             post {
                 always {
@@ -72,17 +72,17 @@ pipeline {
         
         stage('Linting') {
             steps {
-                sh """
+                sh '''
                 npm run lint || true  # Continue even if linting fails
-                """
+                '''
             }
         }
         
         stage('Security Audit') {
             steps {
-                sh """
+                sh '''
                 npm audit --audit-level moderate || true
-                """
+                '''
             }
         }
     }
