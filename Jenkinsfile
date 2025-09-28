@@ -17,7 +17,7 @@ pipeline {
         }
         stage('Run Unit Tests') {
             steps {
-                sh 'npm test -- --coverage'
+                sh 'npm test -- --coverage --watchAll=false'
             }
         }
         stage('Build') {
