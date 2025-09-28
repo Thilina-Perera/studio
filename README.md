@@ -6,7 +6,7 @@ You are seeing this error because your database security rules **must be deploye
 
 To deploy the secure rules and fix this error permanently, Run the 
 
-## Step 2. Run a test
+## Step 2. Run test
 
 ## **Step 2**: Run your test
 
