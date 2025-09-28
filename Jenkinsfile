@@ -14,13 +14,14 @@ pipeline {
   options {
     timestamps()
     ansiColor('xterm')
-    skipDefaultCheckout(false)
+    skipDefaultCheckout(true) // We will handle checkout manually
   }
 
   stages {
     stage('Checkout') {
       steps {
-        checkout scm
+        // Checkout the specific branch
+        git branch: 'signup_page_change', url: 'https://github.com/Thilina-Perera/studio.git'
       }
     }
 
