@@ -23,7 +23,7 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart';
-import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Pie, PieChart as RechartsPieChart, Cell, Treemap, ResponsiveContainer } from 'recharts';
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Pie, PieChart as RechartsPieChart, Cell, Treemap, ResponsiveContainer, Tooltip } from 'recharts';
 import { useUser } from '@/hooks/use-user';
 import { Button } from '@/components/ui/button';
 import { DollarSign, PieChart, Sparkles, Users, BarChart2, RefreshCw, AlertTriangle, LayoutGrid } from 'lucide-react';
@@ -182,6 +182,13 @@ export default function BudgetTrackerPage() {
     return config;
   }, [chartData]);
 
+  const clubColors = useMemo(() => {
+    return chartData.reduce((acc, club, index) => {
+      acc[club.name] = `hsl(var(--chart-${index + 1}))`;
+      return acc;
+    }, {} as { [key: string]: string });
+  }, [chartData]);
+
  const selectedClubCategoryData = useMemo(() => {
     if (!selectedClub) return [];
     return EXPENSE_CATEGORIES.map(category => ({
@@ -293,18 +300,21 @@ export default function BudgetTrackerPage() {
                 </BarChart>
                 </ChartContainer>
             ) : chartType === 'treemap' ? (
-                 <ResponsiveContainer width="100%" height={450}>
-                    <Treemap
-                        data={chartData}
-                        dataKey="total"
-                        // @ts-ignore
-                        ratio={4 / 3}
-                        stroke={theme === 'dark' ? '#fff' : '#000'}
-                        fill="#8884d8"
-                        content={<CustomizedContent colors={CATEGORY_COLORS} />}
-                        nameKey="name"
-                    />
-                </ResponsiveContainer>
+                <ChartContainer config={pieChartConfig} className="min-h-[450px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <Treemap
+                            data={chartData}
+                            dataKey="total"
+                            ratio={4 / 3}
+                            stroke={theme === 'dark' ? '#fff' : '#000'}
+                            fill="#8884d8"
+                            content={<CustomizedContent colors={clubColors} />}
+                            nameKey="name"
+                        >
+                            <Tooltip content={<ChartTooltipContent indicator="dot" />} />
+                        </Treemap>
+                    </ResponsiveContainer>
+                </ChartContainer>
 
             ) : ( // Pie chart
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
