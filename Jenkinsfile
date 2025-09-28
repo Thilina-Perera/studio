@@ -20,7 +20,7 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        // Checkout the specific branch
+        // Checkout the specific branc
         git branch: 'signup_page_change', url: 'https://github.com/Thilina-Perera/studio.git'
       }
     }
