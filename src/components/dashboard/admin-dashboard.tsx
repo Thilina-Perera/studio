@@ -103,15 +103,14 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
   }, [descriptionFilter, clubFilter, categoryFilter, statusFilter, dateFilter, sortOption, allExpenses]);
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-        <p className="text-muted-foreground">
-          Review, approve, and manage all club expenses.
-        </p>
-      </div>
-      
-      <div className="flex justify-end">
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+          <p className="text-muted-foreground">
+            Review, approve, and manage all club expenses.
+          </p>
+        </div>
         <ExpenseReportDialog expenses={filteredExpenses} clubs={allClubs} users={users} />
       </div>
 
