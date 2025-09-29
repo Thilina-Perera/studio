@@ -41,12 +41,21 @@ interface AiExpensePrioritizationProps {
 }
 
 export function AiExpensePrioritization({ expenses, clubs, users }: AiExpensePrioritizationProps) {
-  const { prioritizedExpenses, loading, error, runPrioritization } = useAiPrioritization({ expenses, clubs, users });
+  const { prioritizedExpenses, loading, error, cooldown, runPrioritization } = useAiPrioritization({ expenses, clubs, users });
 
   const handleRunPrioritization = () => {
     runPrioritization();
   };
 
+  const getButtonContent = () => {
+    if (cooldown) {
+        return "Waiting...";
+    }
+    if (loading) {
+        return "Prioritizing...";
+    }
+    return <><Sparkles className="mr-2 h-4 w-4" /> Prioritize with AI</>;
+  }
 
   return (
     <div className="space-y-4">
@@ -56,10 +65,10 @@ export function AiExpensePrioritization({ expenses, clubs, users }: AiExpensePri
         </h2>
         <Button 
           onClick={handleRunPrioritization} 
-          disabled={loading}
+          disabled={loading || cooldown}
           className="animate-glow"
         >
-          {loading ? 'Prioritizing...' : <><Sparkles className="mr-2 h-4 w-4" /> Prioritize with AI</>}
+          {getButtonContent()}
         </Button>
       </div>
 

@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { Button } from '../ui/button';
 import type { Club, Expense } from '@/lib/types';
 import { BecomeRepresentativeDialog } from './become-representative-dialog';
+import { QuickExpenseDialog } from './quick-expense-dialog';
 
 interface StudentDashboardProps {
   allClubs: Club[];
@@ -41,7 +42,7 @@ export function StudentDashboard({ allClubs, allExpenses }: StudentDashboardProp
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Welcome, {user!.name}
+            Welcome, {user!.name}!
           </h1>
           <p className="text-muted-foreground">
             Here's an overview of your submitted expenses.
@@ -89,9 +90,12 @@ export function StudentDashboard({ allClubs, allExpenses }: StudentDashboardProp
               Your most recently submitted expenses.
             </CardDescription>
           </div>
-          <Button asChild>
-            <Link href="/expenses/new">New Expense</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <QuickExpenseDialog />
+            <Button asChild>
+              <Link href="/expenses/new">New Expense</Link>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <ExpenseTable expenses={userExpenses.slice(0, 5)} clubs={allClubs} />

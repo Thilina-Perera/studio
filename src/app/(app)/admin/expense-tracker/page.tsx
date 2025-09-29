@@ -103,6 +103,7 @@ const CATEGORY_COLORS: { [key in ExpenseCategory]: string } = {
     'Subscriptions': '#6366f1', // indigo-500
     'Advertising': '#f59e0b', // amber-500
     'Entertainment': '#d946ef', // fuchsia-500
+    'Equipment': '#14b8a6', // teal-500
     'Other': '#6b7280', // gray-500
   };
   
