@@ -36,6 +36,7 @@ export function SignupForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -134,9 +135,9 @@ export function SignupForm() {
                   <Input type={showPassword ? 'text' : 'password'} {...field} />
                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5">
                     {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400" onClick={() => setShowPassword(false)} />
+                      <EyeOff className="h-5 w-5 text-gray-400" onClick={() => setShowPassword(false)} data-testid="password-visibility-toggle" />
                     ) : (
-                      <Eye className="h-5 w-5 text-gray-400" onClick={() => setShowPassword(true)} />
+                      <Eye className="h-5 w-5 text-gray-400" onClick={() => setShowPassword(true)} data-testid="password-visibility-toggle" />
                     )}
                   </div>
                 </div>
@@ -153,12 +154,12 @@ export function SignupForm() {
               <FormLabel>Re-enter Password</FormLabel>
               <FormControl>
                  <div className="relative">
-                  <Input type={showPassword ? 'text' : 'password'} {...field} />
+                  <Input type={showConfirmPassword ? 'text' : 'password'} {...field} />
                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5">
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400" onClick={() => setShowPassword(false)} />
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-5 w-5 text-gray-400" onClick={() => setShowConfirmPassword(false)} data-testid="confirm-password-visibility-toggle" />
                     ) : (
-                      <Eye className="h-5 w-5 text-gray-400" onClick={() => setShowPassword(true)} />
+                      <Eye className="h-5 w-5 text-gray-400" onClick={() => setShowConfirmPassword(true)} data-testid="confirm-password-visibility-toggle" />
                     )}
                   </div>
                 </div>
