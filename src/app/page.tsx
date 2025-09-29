@@ -5,7 +5,7 @@ import { Briefcase, CreditCard, Rocket, Shield } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Logo } from '@/components/logo';
-import { motion, useAnimation } from 'framer-motion';
+import { motion, useAnimation, Variants } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { useEffect } from 'react';
 
@@ -22,12 +22,12 @@ export default function Home() {
     }
   }, [controls, inView]);
 
-  const fadeInUp = {
+  const fadeInUp: Variants = {
     hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: 'easeOut' } },
   };
 
-  const stagger = {
+  const stagger: Variants = {
     visible: {
       transition: {
         staggerChildren: 0.2,
