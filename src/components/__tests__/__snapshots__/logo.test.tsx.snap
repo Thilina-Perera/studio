@@ -1,0 +1,22 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Logo should match the snapshot 1`] = `
+<div>
+  <a
+    aria-label="ReimburseAI homepage"
+    class="flex items-center gap-2"
+    href="/"
+  >
+    <svg
+      class="h-6 w-6 text-primary"
+    >
+      Wallet
+    </svg>
+    <span
+      class="text-lg font-semibold"
+    >
+      ReimburseAI
+    </span>
+  </a>
+</div>
+`;

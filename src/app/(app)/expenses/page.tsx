@@ -10,6 +10,7 @@ import {
 import { ExpenseTable } from '@/components/dashboard/expense-table';
 import { useUser } from '@/hooks/use-user';
 import Link from 'next/link';
+import { QuickExpenseDialog } from '@/components/dashboard/quick-expense-dialog';
 
 export default function ExpensesPage() {
   const { user, role, clubs, expenses, users } = useUser();
@@ -40,9 +41,12 @@ export default function ExpensesPage() {
             <CardTitle>My Expenses</CardTitle>
             <CardDescription>All expenses you've submitted.</CardDescription>
           </div>
-          <Button asChild>
-            <Link href="/expenses/new">New Expense</Link>
-          </Button>
+          <div className='flex items-center gap-2'>
+            <QuickExpenseDialog />
+            <Button asChild>
+              <Link href="/expenses/new">New Expense</Link>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <ExpenseTable expenses={userExpenses} clubs={clubs} users={users} />

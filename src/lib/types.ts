@@ -19,7 +19,7 @@ export interface Club {
 export const EXPENSE_STATUSES = ['Pending', 'Under Review', 'Approved', 'Rejected'] as const;
 export type ExpenseStatus = typeof EXPENSE_STATUSES[number];
 
-export const EXPENSE_CATEGORIES = ['Food & Beverage', 'Stationary', 'Event Materials', 'Transport', 'Venue', 'Subscriptions', 'Advertising', 'Entertainment', 'Other'] as const;
+export const EXPENSE_CATEGORIES = ['Food & Beverage', 'Stationary', 'Event Materials', 'Transport', 'Venue', 'Subscriptions', 'Advertising', 'Entertainment', 'Equipment', 'Other'] as const;
 export type ExpenseCategory = typeof EXPENSE_CATEGORIES[number];
 
 
