@@ -23,7 +23,7 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart';
-import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Pie, PieChart as RechartsPieChart, Cell, Treemap, ResponsiveContainer, Tooltip } from 'recharts';
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Pie, PieChart as RechartsPieChart, Cell, Treemap, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import { useUser } from '@/hooks/use-user';
 import { Button } from '@/components/ui/button';
 import { DollarSign, PieChart, Sparkles, Users, BarChart2, RefreshCw, AlertTriangle, LayoutGrid } from 'lucide-react';
@@ -33,6 +33,7 @@ import { placeholderRecommendations } from '@/lib/placeholder-recommendations';
 import { getBudgetRecommendations, BudgetAnalysisInput } from '@/ai/flows/budget-recommendations';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useTheme } from 'next-themes';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 interface AiRecommendationsProps {
@@ -248,18 +249,41 @@ export default function BudgetTrackerPage() {
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant={chartType === 'bar' ? 'default' : 'outline'} size="icon" onClick={() => setChartType('bar')}>
-                <BarChart2 className="h-4 w-4" />
-                <span className="sr-only">Bar Chart</span>
-            </Button>
-            <Button variant={chartType === 'pie' ? 'default' : 'outline'} size="icon" onClick={() => setChartType('pie')}>
-                <PieChart className="h-4 w-4" />
-                <span className="sr-only">Pie Chart</span>
-            </Button>
-            <Button variant={chartType === 'treemap' ? 'default' : 'outline'} size="icon" onClick={() => setChartType('treemap')}>
-                <LayoutGrid className="h-4 w-4" />
-                <span className="sr-only">Treemap</span>
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant={chartType === 'bar' ? 'default' : 'outline'} size="icon" onClick={() => setChartType('bar')}>
+                      <BarChart2 className="h-4 w-4" />
+                      <span className="sr-only">Bar Chart</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Bar Chart</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant={chartType === 'pie' ? 'default' : 'outline'} size="icon" onClick={() => setChartType('pie')}>
+                      <PieChart className="h-4 w-4" />
+                      <span className="sr-only">Pie Chart</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Pie Chart</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant={chartType === 'treemap' ? 'default' : 'outline'} size="icon" onClick={() => setChartType('treemap')}>
+                      <LayoutGrid className="h-4 w-4" />
+                      <span className="sr-only">Treemap</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Treemap</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
         </div>
         </CardHeader>
         <CardContent>
@@ -312,7 +336,7 @@ export default function BudgetTrackerPage() {
                             content={<CustomizedContent colors={clubColors} />}
                             nameKey="name"
                         >
-                            <Tooltip content={<ChartTooltipContent indicator="dot" />} />
+                            <RechartsTooltip content={<ChartTooltipContent indicator="dot" />} />
                         </Treemap>
                     </ResponsiveContainer>
                 </ChartContainer>
@@ -439,7 +463,7 @@ const CustomizedContent = ({ root, depth, x, y, width, height, index, payload, r
         }}
       />
       {depth === 1 && width > 50 && height > 25 ? (
-        <text x={x + width / 2} y={y + height / 2 + 7} textAnchor="middle" fill="#fff" fontSize={14}>
+        <text x={x + width / 2} y={y + height / 2 + 7} textAnchor="middle" fill="#fff" fontSize={16} fontWeight="bold">
           {clubName}
         </text>
       ) : null}
