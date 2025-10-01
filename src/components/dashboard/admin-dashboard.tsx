@@ -25,6 +25,7 @@ import { AiExpensePrioritization } from './ai-expense-prioritization';
 import { useUser } from '@/hooks/use-user';
 import { ExpenseReportDialog } from './expense-report-dialog';
 import { ChatbotPopup } from './chatbot-popup';
+import { ExpenseStatusChart } from './expense-status-chart';
 
 interface AdminDashboardProps {
   allExpenses: Expense[];
@@ -113,6 +114,8 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
         </div>
         <ExpenseReportDialog expenses={filteredExpenses} clubs={allClubs} users={users} />
       </div>
+
+      <ExpenseStatusChart allExpenses={allExpenses} />
 
       <AiExpensePrioritization expenses={allExpenses} clubs={allClubs} users={users} />
 
