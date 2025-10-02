@@ -16,9 +16,6 @@ pipeline {
             }
         }
         stage('Run Tests') {
-            when {
-                branch 'master'
-            }
             steps {
                 sh 'npm test'
             }
