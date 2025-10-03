@@ -37,7 +37,6 @@ export interface Expense {
   adminComment?: string;
   isFlagged?: boolean;
   category?: ExpenseCategory;
-  userId: string; 
 }
 
 export interface PrioritizedExpense extends Expense {
