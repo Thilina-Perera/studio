@@ -85,7 +85,7 @@ export default function Home() {
                 </div>
                 <motion.div variants={fadeInUp} className="flex flex-col gap-2 min-[400px]:flex-row">
                   <Button asChild size="lg">
-                    <Link href="/signup">Get Started for Free</Link>
+                    <Link href="/signup">Get Started for Free!</Link>
                   </Button>
                 </motion.div>
               </motion.div>

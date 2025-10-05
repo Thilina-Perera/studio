@@ -23,16 +23,17 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart';
-import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Pie, PieChart as RechartsPieChart, Cell, Treemap, ResponsiveContainer, Tooltip } from 'recharts';
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Pie, PieChart as RechartsPieChart, Cell, Treemap, ResponsiveContainer, Tooltip as RechartsTooltip, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import { useUser } from '@/hooks/use-user';
 import { Button } from '@/components/ui/button';
-import { DollarSign, PieChart, Sparkles, Users, BarChart2, RefreshCw, AlertTriangle, LayoutGrid } from 'lucide-react';
+import { DollarSign, PieChart, Sparkles, Users, BarChart2, RefreshCw, AlertTriangle, LayoutGrid, Radar as RadarIcon } from 'lucide-react';
 import { EXPENSE_CATEGORIES, ExpenseCategory, Club, Expense } from '@/lib/types';
 import ReactMarkdown from 'react-markdown';
 import { placeholderRecommendations } from '@/lib/placeholder-recommendations';
 import { getBudgetRecommendations, BudgetAnalysisInput } from '@/ai/flows/budget-recommendations';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useTheme } from 'next-themes';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 interface AiRecommendationsProps {
@@ -106,12 +107,12 @@ const CATEGORY_COLORS: { [key in ExpenseCategory]: string } = {
     'Equipment': '#14b8a6', // teal-500
     'Other': '#6b7280', // gray-500
   };
-  
+
 
 export default function BudgetTrackerPage() {
   const { theme } = useTheme();
   const { clubs, expenses, loading } = useUser();
-  const [chartType, setChartType] = useState<'bar' | 'pie' | 'treemap'>('bar');
+  const [chartType, setChartType] = useState<'bar' | 'pie' | 'treemap' | 'radar'>('bar');
   const [selectedClub, setSelectedClub] = useState<any | null>(null);
 
   const approvedExpenses = useMemo(() => {
@@ -198,6 +199,31 @@ export default function BudgetTrackerPage() {
     })).filter(item => item.value > 0);
   }, [selectedClub]);
 
+ const radarChartData = useMemo(() => {
+    const data = selectedClub ? [selectedClub] : chartData;
+    const categoryTotals = data.reduce((acc, club) => {
+        EXPENSE_CATEGORIES.forEach(category => {
+            acc[category] = (acc[category] || 0) + (club[category] || 0);
+        });
+        return acc;
+    }, {} as { [key in ExpenseCategory]: number });
+
+    return Object.entries(categoryTotals)
+        .map(([subject, value]) => ({ subject, value }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 6);
+  }, [selectedClub, chartData]);
+
+  const yAxisTicks = useMemo(() => {
+    if (chartData.length === 0) return [];
+    const maxTotal = Math.max(...chartData.map(club => club.total));
+    const ticks = [];
+    for (let i = 0; i <= maxTotal + 5000; i += 5000) {
+      ticks.push(i);
+    }
+    return ticks;
+  }, [chartData]);
+
 
   return (
     <div className="space-y-8">
@@ -248,18 +274,52 @@ export default function BudgetTrackerPage() {
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant={chartType === 'bar' ? 'default' : 'outline'} size="icon" onClick={() => setChartType('bar')}>
-                <BarChart2 className="h-4 w-4" />
-                <span className="sr-only">Bar Chart</span>
-            </Button>
-            <Button variant={chartType === 'pie' ? 'default' : 'outline'} size="icon" onClick={() => setChartType('pie')}>
-                <PieChart className="h-4 w-4" />
-                <span className="sr-only">Pie Chart</span>
-            </Button>
-            <Button variant={chartType === 'treemap' ? 'default' : 'outline'} size="icon" onClick={() => setChartType('treemap')}>
-                <LayoutGrid className="h-4 w-4" />
-                <span className="sr-only">Treemap</span>
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant={chartType === 'bar' ? 'default' : 'outline'} size="icon" onClick={() => setChartType('bar')}>
+                      <BarChart2 className="h-4 w-4" />
+                      <span className="sr-only">Bar Chart</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Bar Chart</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant={chartType === 'pie' ? 'default' : 'outline'} size="icon" onClick={() => setChartType('pie')}>
+                      <PieChart className="h-4 w-4" />
+                      <span className="sr-only">Pie Chart</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Pie Chart</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant={chartType === 'treemap' ? 'default' : 'outline'} size="icon" onClick={() => setChartType('treemap')}>
+                      <LayoutGrid className="h-4 w-4" />
+                      <span className="sr-only">Treemap</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Treemap</p>
+                </TooltipContent>
+              </Tooltip>
+               <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant={chartType === 'radar' ? 'default' : 'outline'} size="icon" onClick={() => setChartType('radar')}>
+                      <RadarIcon className="h-4 w-4" />
+                      <span className="sr-only">Radar Chart</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Radar Chart</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
         </div>
         </CardHeader>
         <CardContent>
@@ -282,7 +342,7 @@ export default function BudgetTrackerPage() {
                     />
                     <YAxis
                     tickFormatter={(value) => `$${value}`}
-                    domain={[0, 'dataMax + 1000']}
+                    ticks={yAxisTicks}
                     />
                     <ChartTooltip
                     cursor={false}
@@ -312,11 +372,52 @@ export default function BudgetTrackerPage() {
                             content={<CustomizedContent colors={clubColors} />}
                             nameKey="name"
                         >
-                            <Tooltip content={<ChartTooltipContent indicator="dot" />} />
+                            <RechartsTooltip content={<ChartTooltipContent indicator="dot" />} />
                         </Treemap>
                     </ResponsiveContainer>
                 </ChartContainer>
-
+            ) : chartType === 'radar' ? (
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+                    <div className="md:col-span-2">
+                        <ChartContainer config={chartConfig} className="min-h-[450px] w-full">
+                             <ResponsiveContainer width="100%" height="100%">
+                                <RadarChart data={radarChartData}>
+                                    <CartesianGrid />
+                                    <PolarAngleAxis dataKey="subject" />
+                                    <PolarRadiusAxis />
+                                    <Radar name={selectedClub ? selectedClub.club : "All Clubs"} dataKey="value" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+                                     <RechartsTooltip content={<ChartTooltipContent indicator="dot" />} />
+                                </RadarChart>
+                            </ResponsiveContainer>
+                        </ChartContainer>
+                    </div>
+                     <Card className="md:col-span-1">
+                        <CardHeader>
+                            <CardTitle>
+                                {selectedClub ? `${selectedClub.club} Categories` : 'Clubs'}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex flex-col gap-2">
+                             <Button
+                                variant={!selectedClub ? 'secondary' : 'ghost'}
+                                className="w-full justify-start"
+                                onClick={() => setSelectedClub(null)}
+                            >
+                                All Clubs
+                            </Button>
+                            {chartData.map((club) => (
+                                <Button
+                                    key={club.id}
+                                    variant={selectedClub?.id === club.id ? 'secondary' : 'ghost'}
+                                    className="w-full justify-start"
+                                    onClick={() => setSelectedClub(club)}
+                                >
+                                    {club.club}
+                                </Button>
+                            ))}
+                        </CardContent>
+                    </Card>
+                </div>
             ) : ( // Pie chart
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
                     <div className="md:col-span-2">
@@ -439,8 +540,22 @@ const CustomizedContent = ({ root, depth, x, y, width, height, index, payload, r
         }}
       />
       {depth === 1 && width > 50 && height > 25 ? (
-        <text x={x + width / 2} y={y + height / 2 + 7} textAnchor="middle" fill="#fff" fontSize={14}>
-          {clubName}
+         <text
+            x={x + width / 2}
+            y={y + height / 2 + 7}
+            textAnchor="middle"
+            fill="#fff"
+            fontSize={20}
+            fontWeight="bold"
+            style={{
+                paintOrder: 'stroke',
+                stroke: '#000000',
+                strokeWidth: '1px',
+                strokeLinecap: 'butt',
+                strokeLinejoin: 'miter',
+            }}
+            >
+            {clubName}
         </text>
       ) : null}
     </g>

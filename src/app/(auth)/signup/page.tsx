@@ -1,3 +1,4 @@
+'use client';
 import { SignupForm } from '@/components/auth/signup-form';
 import {
   Card,
@@ -7,25 +8,32 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export default function SignupPage() {
   return (
-    <Card className="w-full max-w-sm">
-      <CardHeader>
-        <CardTitle className="text-2xl">Sign Up</CardTitle>
-        <CardDescription>
-          Create an account to start managing your expenses.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <SignupForm />
-        <div className="mt-4 text-center text-sm">
-          Already have an account?{' '}
-          <Link href="/login" className="underline">
-            Log in
-          </Link>
-        </div>
-      </CardContent>
-    </Card>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Card className="w-full max-w-sm">
+        <CardHeader>
+          <CardTitle className="text-2xl">Sign Up</CardTitle>
+          <CardDescription>
+            Create an account to start managing your expenses.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <SignupForm />
+          <div className="mt-4 text-center text-sm">
+            Already have an account?{' '}
+            <Link href="/login" className="underline">
+              Log in
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
