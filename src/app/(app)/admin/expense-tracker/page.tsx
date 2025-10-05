@@ -530,8 +530,22 @@ const CustomizedContent = ({ root, depth, x, y, width, height, index, payload, r
         }}
       />
       {depth === 1 && width > 50 && height > 25 ? (
-        <text x={x + width / 2} y={y + height / 2 + 7} textAnchor="middle" fill="#fff" fontSize={16} fontWeight="bold">
-          {clubName}
+         <text
+            x={x + width / 2}
+            y={y + height / 2 + 7}
+            textAnchor="middle"
+            fill="#fff"
+            fontSize={20}
+            fontWeight="bold"
+            style={{
+                paintOrder: 'stroke',
+                stroke: '#000000',
+                strokeWidth: '1px',
+                strokeLinecap: 'butt',
+                strokeLinejoin: 'miter',
+            }}
+            >
+            {clubName}
         </text>
       ) : null}
     </g>
