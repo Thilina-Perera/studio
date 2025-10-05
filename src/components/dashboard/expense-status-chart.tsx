@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { PieChart, Pie, Cell, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import {
   Card,
   CardContent,
@@ -10,14 +10,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
 import type { Expense } from '@/lib/types';
 import { EXPENSE_STATUSES } from '@/lib/types';
+import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 
 interface ExpenseStatusChartProps {
   allExpenses: Expense[];
@@ -55,31 +50,45 @@ export function ExpenseStatusChart({ allExpenses }: ExpenseStatusChartProps) {
   })).filter((d) => d.value > 0);
 
   return (
-    <Card className="w-fit">
+    <Card className="w-96">
       <CardHeader>
         <CardTitle>Expense Status Overview</CardTitle>
         <CardDescription>A summary of all expense statuses.</CardDescription>
       </CardHeader>
-      <CardContent className="flex items-center justify-center w-full">
-        <ChartContainer
-          config={chartConfig}
-          className="aspect-square max-h-[250px] w-fit"
-        >
-          <PieChart>
-            <Tooltip content={<ChartTooltipContent hideLabel />} />
-            <Pie data={chartData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={70}>
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.fill} />
-              ))}
-            </Pie>
-            <ChartLegend
-              content={<ChartLegendContent nameKey="name" />}
-              layout="vertical"
-              verticalAlign="middle"
-              align="right"
-            />
-          </PieChart>
-        </ChartContainer>
+      <CardContent className="flex items-center justify-start gap-8 px-8">
+        <div className="h-[150px] w-[150px] flex-shrink-0">
+            <ChartContainer config={chartConfig} className='w-full h-full'>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Tooltip content={<ChartTooltipContent hideLabel />} />
+              <Pie
+                data={chartData}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                innerRadius={40}
+                outerRadius={60}
+              >
+                {chartData.map((entry) => (
+                  <Cell key={`cell-${entry.name}`} fill={entry.fill} />
+                ))}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+          </ChartContainer>
+        </div>
+        <div className="flex flex-col gap-2 text-sm">
+          {chartData.map((entry) => (
+            <div key={entry.name} className="flex items-center gap-2">
+              <span
+                className="h-3 w-3 rounded-sm"
+                style={{ backgroundColor: entry.fill }}
+              />
+              <span>{entry.name}</span>
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

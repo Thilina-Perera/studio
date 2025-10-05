@@ -114,6 +114,7 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
         </div>
         <ExpenseReportDialog expenses={filteredExpenses} clubs={allClubs} users={users} />
       </div>
+
       <div className="grid gap-4 md:grid-cols-2">
         <ExpenseStatusChart allExpenses={allExpenses} />
         <AiExpensePrioritization expenses={allExpenses} clubs={allClubs} users={users} />
@@ -180,7 +181,7 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
                 <SelectContent>
                     <SelectItem value="default">Sort by Date (Newest)</SelectItem>
                     <SelectItem value="date-asc">Date (Oldest First)</SelectItem>
-                    <SelectItem value="amount-desc">Amount (High to Low)</SelectItem
+                    <SelectItem value="amount-desc">Amount (High to Low)</SelectItem>
                     <SelectItem value="amount-asc">Amount (Low to High)</SelectItem>
                 </SelectContent>
             </Select>
