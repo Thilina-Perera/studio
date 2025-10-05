@@ -60,20 +60,14 @@ export function ExpenseStatusChart({ allExpenses }: ExpenseStatusChartProps) {
         <CardTitle>Expense Status Overview</CardTitle>
         <CardDescription>A summary of all expense statuses.</CardDescription>
       </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig} className="min-h-[200px]">
+      <CardContent className="flex items-center justify-center w-full">
+        <ChartContainer
+          config={chartConfig}
+          className="aspect-square max-h-[250px] w-fit"
+        >
           <PieChart>
-            <Tooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel />}
-            />
-            <Pie
-              data={chartData}
-              dataKey="value"
-              nameKey="name"
-              innerRadius={50}
-              outerRadius={70}
-            >
+            <Tooltip content={<ChartTooltipContent hideLabel />} />
+            <Pie data={chartData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={70}>
               {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.fill} />
               ))}
