@@ -23,10 +23,10 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart';
-import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Pie, PieChart as RechartsPieChart, Cell, Treemap, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Pie, PieChart as RechartsPieChart, Cell, Treemap, ResponsiveContainer, Tooltip as RechartsTooltip, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import { useUser } from '@/hooks/use-user';
 import { Button } from '@/components/ui/button';
-import { DollarSign, PieChart, Sparkles, Users, BarChart2, RefreshCw, AlertTriangle, LayoutGrid } from 'lucide-react';
+import { DollarSign, PieChart, Sparkles, Users, BarChart2, RefreshCw, AlertTriangle, LayoutGrid, Radar as RadarIcon } from 'lucide-react';
 import { EXPENSE_CATEGORIES, ExpenseCategory, Club, Expense } from '@/lib/types';
 import ReactMarkdown from 'react-markdown';
 import { placeholderRecommendations } from '@/lib/placeholder-recommendations';
@@ -107,12 +107,12 @@ const CATEGORY_COLORS: { [key in ExpenseCategory]: string } = {
     'Equipment': '#14b8a6', // teal-500
     'Other': '#6b7280', // gray-500
   };
-  
+
 
 export default function BudgetTrackerPage() {
   const { theme } = useTheme();
   const { clubs, expenses, loading } = useUser();
-  const [chartType, setChartType] = useState<'bar' | 'pie' | 'treemap'>('bar');
+  const [chartType, setChartType] = useState<'bar' | 'pie' | 'treemap' | 'radar'>('bar');
   const [selectedClub, setSelectedClub] = useState<any | null>(null);
 
   const approvedExpenses = useMemo(() => {
@@ -199,6 +199,21 @@ export default function BudgetTrackerPage() {
     })).filter(item => item.value > 0);
   }, [selectedClub]);
 
+ const radarChartData = useMemo(() => {
+    const data = selectedClub ? [selectedClub] : chartData;
+    const categoryTotals = data.reduce((acc, club) => {
+        EXPENSE_CATEGORIES.forEach(category => {
+            acc[category] = (acc[category] || 0) + (club[category] || 0);
+        });
+        return acc;
+    }, {} as { [key in ExpenseCategory]: number });
+
+    return Object.entries(categoryTotals)
+        .map(([subject, value]) => ({ subject, value }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 6);
+  }, [selectedClub, chartData]);
+
 
   return (
     <div className="space-y-8">
@@ -283,6 +298,17 @@ export default function BudgetTrackerPage() {
                   <p>Treemap</p>
                 </TooltipContent>
               </Tooltip>
+               <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant={chartType === 'radar' ? 'default' : 'outline'} size="icon" onClick={() => setChartType('radar')}>
+                      <RadarIcon className="h-4 w-4" />
+                      <span className="sr-only">Radar Chart</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Radar Chart</p>
+                </TooltipContent>
+              </Tooltip>
             </TooltipProvider>
         </div>
         </CardHeader>
@@ -340,7 +366,48 @@ export default function BudgetTrackerPage() {
                         </Treemap>
                     </ResponsiveContainer>
                 </ChartContainer>
-
+            ) : chartType === 'radar' ? (
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+                    <div className="md:col-span-2">
+                        <ChartContainer config={chartConfig} className="min-h-[450px] w-full">
+                             <ResponsiveContainer width="100%" height="100%">
+                                <RadarChart data={radarChartData}>
+                                    <CartesianGrid />
+                                    <PolarAngleAxis dataKey="subject" />
+                                    <PolarRadiusAxis />
+                                    <Radar name={selectedClub ? selectedClub.club : "All Clubs"} dataKey="value" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+                                     <RechartsTooltip content={<ChartTooltipContent indicator="dot" />} />
+                                </RadarChart>
+                            </ResponsiveContainer>
+                        </ChartContainer>
+                    </div>
+                     <Card className="md:col-span-1">
+                        <CardHeader>
+                            <CardTitle>
+                                {selectedClub ? `${selectedClub.club} Categories` : 'Clubs'}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex flex-col gap-2">
+                             <Button
+                                variant={!selectedClub ? 'secondary' : 'ghost'}
+                                className="w-full justify-start"
+                                onClick={() => setSelectedClub(null)}
+                            >
+                                All Clubs
+                            </Button>
+                            {chartData.map((club) => (
+                                <Button
+                                    key={club.id}
+                                    variant={selectedClub?.id === club.id ? 'secondary' : 'ghost'}
+                                    className="w-full justify-start"
+                                    onClick={() => setSelectedClub(club)}
+                                >
+                                    {club.club}
+                                </Button>
+                            ))}
+                        </CardContent>
+                    </Card>
+                </div>
             ) : ( // Pie chart
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
                     <div className="md:col-span-2">
