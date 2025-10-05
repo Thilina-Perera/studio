@@ -15,8 +15,8 @@ export default function AuthLayout({
         objectFit="cover"
         className="z-0"
       />
-      <div className="relative z-10">
-        <div className="mb-8 animate-fade-in-down">
+      <div className="relative z-10 w-full max-w-sm">
+        <div className="mb-8 flex justify-center animate-fade-in-down">
           <Logo />
         </div>
         <div className="animate-fade-in-up">{children}</div>
