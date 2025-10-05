@@ -214,6 +214,16 @@ export default function BudgetTrackerPage() {
         .slice(0, 6);
   }, [selectedClub, chartData]);
 
+  const yAxisTicks = useMemo(() => {
+    if (chartData.length === 0) return [];
+    const maxTotal = Math.max(...chartData.map(club => club.total));
+    const ticks = [];
+    for (let i = 0; i <= maxTotal + 5000; i += 5000) {
+      ticks.push(i);
+    }
+    return ticks;
+  }, [chartData]);
+
 
   return (
     <div className="space-y-8">
@@ -332,7 +342,7 @@ export default function BudgetTrackerPage() {
                     />
                     <YAxis
                     tickFormatter={(value) => `$${value}`}
-                    domain={[0, 'dataMax + 1000']}
+                    ticks={yAxisTicks}
                     />
                     <ChartTooltip
                     cursor={false}
