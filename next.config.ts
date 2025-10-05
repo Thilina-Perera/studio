@@ -51,6 +51,12 @@ const nextConfig: NextConfig = {
         hostname: 'happay.com',
         port: '',
         pathname: '/**'
+      },
+      {
+        protocol: 'https',
+        hostname: 'sdmntpraustraliaeast.oaiusercontent.com',
+        port: '',
+        pathname: '/**'
       }
     ],
   },
