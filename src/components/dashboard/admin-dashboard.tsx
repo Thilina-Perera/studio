@@ -115,8 +115,10 @@ export function AdminDashboard({ allExpenses, allClubs }: AdminDashboardProps) {
         <ExpenseReportDialog expenses={filteredExpenses} clubs={allClubs} users={users} />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <ExpenseStatusChart allExpenses={allExpenses} />
+      <div className="space-y-4">
+        <div className="flex-shrink-0">
+          <ExpenseStatusChart allExpenses={allExpenses} />
+        </div>
         <AiExpensePrioritization expenses={allExpenses} clubs={allClubs} users={users} />
       </div>
 
