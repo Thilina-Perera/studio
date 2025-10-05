@@ -33,6 +33,24 @@ const nextConfig: NextConfig = {
         hostname: 'media.licdn.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.ecu.edu.lk',
+        port: '',
+        pathname: '/**'
+      },
+       {
+        protocol: 'https',
+        hostname: 'happay.com',
+        port: '',
+        pathname: '/**'
       }
     ],
   },

@@ -95,7 +95,7 @@ export default function Home() {
                   className="mx-auto overflow-hidden rounded-xl object-cover object-center sm:w-full lg:order-last"
                   data-ai-hint="finance technology"
                   height="450"
-                  src="https://media.licdn.com/dms/image/v2/D5612AQHdBSTrgcST8w/article-cover_image-shrink_720_1280/article-cover_image-shrink_720_1280/0/1726011716880?e=1761177600&v=beta&t=eh-f8DLnCNZ2TQgov9PVe_VqmtZSwFI37vt629-5Ymw"
+                  src="https://happay.com/blog/wp-content/uploads/sites/12/2022/07/what-is-expense-reimbursement-policy.webp"
                   width="700"
                 />
               </motion.div>
