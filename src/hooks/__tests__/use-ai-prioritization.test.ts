@@ -2,29 +2,24 @@
 import { renderHook, act } from '@testing-library/react';
 import { useAiPrioritization } from '../use-ai-prioritization';
 import { prioritizeExpenses } from '@/ai/flows/prioritize-expenses';
-import { Club, Expense, User, PrioritizedExpense } from '@/lib/types';
+import { Club, Expense, User } from '@/lib/types';
 
-// --- Mocks ---
-
+// Mocks
 jest.mock('@/ai/flows/prioritize-expenses', () => ({
   __esModule: true,
   prioritizeExpenses: jest.fn(),
 }));
 
-// --- Type Definitions for Mocks ---
-
+// Type Definitions
 type PrioritizationResult = {
   expenseId: string;
   priorityScore: number;
   reason: string;
 };
 
-// --- Typed Mocks ---
-
 const mockedPrioritizeExpenses = prioritizeExpenses as jest.Mock;
 
-// --- Test Data ---
-
+// Test Data
 const mockClubs: Club[] = [{ id: 'club-1', name: 'Chess Club', description: 'A club for chess enthusiasts', representativeId: 'user-1' }];
 const mockUsers: User[] = [{ id: 'user-1', name: 'John Doe', email: 'john.doe@example.com', role: 'student' }];
 const mockExpenses: Expense[] = [
@@ -34,8 +29,17 @@ const mockExpenses: Expense[] = [
 ];
 
 describe('useAiPrioritization', () => {
+  let consoleErrorSpy: jest.SpyInstance;
+
   beforeEach(() => {
     mockedPrioritizeExpenses.mockClear();
+    // Suppress console.error for expected errors
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    // Restore console.error
+    consoleErrorSpy.mockRestore();
   });
 
   it('should set loading state correctly when running prioritization', async () => {
@@ -114,9 +118,7 @@ describe('useAiPrioritization', () => {
     const newExpenses = [...mockExpenses, { ...mockExpenses[0], id: 'exp-4', userId: 'user-1' }];
     rerender({ expenses: newExpenses });
 
-    // Asserting the actual behavior: the error persists after a rerender.
     expect(result.current.error).toBe(errorMessage);
-    // The old results should also persist, they are not cleared.
     expect(result.current.prioritizedExpenses).toEqual([]);
   });
 });
