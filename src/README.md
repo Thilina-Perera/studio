@@ -7,7 +7,7 @@ You are seeing this error because your database security rules **must be deploye
 To deploy the secure rules and fix this error permanently, run the following command in your terminal
 
 ```bash
-firebase deploy --only firestore:rules
+firebase deploy --onlyfirestore:rules
 ```
 
 After you run this command and see "Deploy complete!", the permission errors will be resolved.
