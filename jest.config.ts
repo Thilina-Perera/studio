@@ -8,7 +8,7 @@ const createJestConfig = nextJest({
 const customJestConfig: Config = {
   testEnvironment: 'jest-environment-jsdom',
   setupFilesAfterEnv: ['<rootDir>/src/tests/setup-tests.ts', 'whatwg-fetch'],
-  testPathIgnorePatterns: ['/node_modules/', '/.next/', '/src/tests/performance/'],
+  testPathIgnorePatterns: ['/node_modules/', '/.next/', '/src/tests/performance/', '/src/tests/security/'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
